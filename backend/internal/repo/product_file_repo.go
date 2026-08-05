@@ -1,0 +1,40 @@
+package repo
+
+import (
+	"context"
+
+	"github.com/jmoiron/sqlx"
+
+	"alwis.dev/selectify/internal/db"
+	"alwis.dev/selectify/internal/logger"
+	"alwis.dev/selectify/internal/model"
+)
+
+type productFileRepo struct {
+	rwDb *sqlx.DB
+	roDb *sqlx.DB
+}
+
+type ProductFileRepo interface {
+	GetProductFileByProductID(ctx context.Context, proID uint) (productFile *model.ProductFile, err error)
+}
+
+func NewProductFileRepo(db *db.DatabaseConnection) ProductFileRepo {
+	return &productFileRepo{
+		rwDb: db.RwDb,
+		roDb: db.RoDb,
+	}
+}
+
+func (r *productFileRepo) GetProductFileByProductID(ctx context.Context, proID uint) (*model.ProductFile, error) {
+	var productFile model.ProductFile
+	query := `SELECT * FROM product_file WHERE product_id = $1 AND is_primary = TRUE`
+
+	err := r.roDb.GetContext(ctx, &productFile, query, proID)
+	if err != nil {
+		err = logger.Errorf(ctx, err, "error getting product file by proID %d", proID)
+		return nil, err
+	}
+
+	return &productFile, nil
+}

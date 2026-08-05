@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package payment.v1;
+
+option go_package = "alwis.dev/selectify/payment-pkg/grpc-proto/payment;payment";
+
+service PaymentService {
+  rpc CreatePayment (PaymentRequest) returns (PaymentResponse);
+}
+
+message PaymentRequest {
+  uint64 order_id = 1;
+}
+
+message Payment {
+  uint64 id = 1;
+  uint64 order_id = 2;
+  string provider = 3;
+  string provider_payment_id = 4;
+  string client_secret = 5;
+  string status = 6;
+  int64 amount = 7;
+  string currency = 8;
+  string failure_code = 9;
+  string failure_message = 10;
+  int64 created_at_unix = 11;
+  int64 updated_at_unix = 12;
+  int64 paid_at_unix = 13;
+}
+
+message PaymentResponse {
+  Payment payment = 1;
+}

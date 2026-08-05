@@ -1,0 +1,33 @@
+/vendor/
+.env
+**/cover.out
+/bin/*
+/data/*
+.idea
+/deploy/dev/cert1/*
+/deploy/dev/cert/*
+node_modules
+/frontend/node_modules/
+
+# Dependencies
+node_modules/
+
+# Next.js generated files
+.next/
+out/
+frontend/tsconfig.tsbuildinfo
+
+# Environment files
+.env.*
+!.env-example
+
+# IDE/editor temporary files
+.idea/
+.vscode/
+.cursor/
+*.log
+
+# macOS
+.DS_Store
+
+deploy/dev/cert/
