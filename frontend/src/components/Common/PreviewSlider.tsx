@@ -109,7 +109,7 @@ const PreviewSliderModal = () => {
           {images.map((src, i) => (
             <SwiperSlide key={`${src}-${i}`}>
               <div className="flex justify-center items-center">
-                <Image
+                <img
                   src={src}
                   alt="product image"
                   width={450}

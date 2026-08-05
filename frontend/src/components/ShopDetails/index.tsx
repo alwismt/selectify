@@ -1182,7 +1182,7 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
                         <div className="flex items-center justify-between">
                           <a href="#" className="flex items-center gap-4">
                             <div className="w-12.5 h-12.5 rounded-full overflow-hidden">
-                              <Image
+                              <img
                                 src="/images/users/user-01.jpg"
                                 alt="author"
                                 className="w-12.5 h-12.5 rounded-full overflow-hidden"
@@ -1296,7 +1296,7 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
                         <div className="flex items-center justify-between">
                           <a href="#" className="flex items-center gap-4">
                             <div className="w-12.5 h-12.5 rounded-full overflow-hidden">
-                              <Image
+                              <img
                                 src="/images/users/user-01.jpg"
                                 alt="author"
                                 className="w-12.5 h-12.5 rounded-full overflow-hidden"
@@ -1410,7 +1410,7 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
                         <div className="flex items-center justify-between">
                           <a href="#" className="flex items-center gap-4">
                             <div className="w-12.5 h-12.5 rounded-full overflow-hidden">
-                              <Image
+                              <img
                                 src="/images/users/user-01.jpg"
                                 alt="author"
                                 className="w-12.5 h-12.5 rounded-full overflow-hidden"

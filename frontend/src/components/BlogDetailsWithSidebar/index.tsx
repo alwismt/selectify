@@ -20,7 +20,7 @@ const BlogDetailsWithSidebar = () => {
             {/* <!-- blog details --> */}
             <div className="lg:max-w-[750px] w-full">
               <div className="rounded-[10px] overflow-hidden mb-7.5">
-                <Image
+                <img
                   className="rounded-[10px]"
                   src="/images/blog/blog-details-01.jpg"
                   alt="details"
@@ -98,7 +98,7 @@ const BlogDetailsWithSidebar = () => {
                     className="flex items-center justify-center gap-3 mt-5.5"
                   >
                     <div className="flex w-12 h-12 rounded-full overflow-hidden">
-                      <Image
+                      <img
                         src="/images/users/user-04.jpg"
                         alt="user"
                         width={48}

@@ -7,7 +7,7 @@ const BlogItem = ({ blog }: { blog: BlogItem }) => {
   return (
     <div className="shadow-1 bg-white rounded-xl px-4 sm:px-5 pt-5 pb-4">
       <Link href="/blogs/blog-details" className="rounded-md overflow-hidden">
-        <Image
+        <img
           src={blog.img}
           alt="blog"
           className="rounded-md w-full"

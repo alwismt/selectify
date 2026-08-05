@@ -19,7 +19,7 @@ const LatestPosts = ({ blogs }) => {
                 href="/blogs/blog-details-with-sidebar"
                 className="max-w-[110px] w-full rounded-[10px] overflow-hidden"
               >
-                <Image
+                <img
                   src={blog.img}
                   alt="blog"
                   className="rounded-[10px] w-full"

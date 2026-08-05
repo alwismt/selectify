@@ -31,7 +31,7 @@ const Testimonials = () => {
             <div className="mb-10 flex items-center justify-between">
               <div>
                 <span className="flex items-center gap-2.5 font-medium text-dark mb-1.5">
-                  <Image
+                  <img
                     src="/images/icons/icon-08.svg"
                     alt="icon"
                     width={17}

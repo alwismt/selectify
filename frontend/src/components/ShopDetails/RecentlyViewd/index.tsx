@@ -31,7 +31,7 @@ const RecentlyViewdItems = () => {
           <div className="mb-10 flex items-center justify-between">
             <div>
               <span className="flex items-center gap-2.5 font-medium text-dark mb-1.5">
-                <Image
+                <img
                   src="/images/icons/icon-05.svg"
                   width={17}
                   height={17}

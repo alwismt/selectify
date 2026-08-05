@@ -346,7 +346,7 @@ const Footer = () => {
 
               <div className="flex flex-wrap items-center gap-6">
                 <a href="#" aria-label="payment system with visa card">
-                  <Image
+                  <img
                     src="/images/payment/payment-01.svg"
                     alt="visa card"
                     width={66}
@@ -354,7 +354,7 @@ const Footer = () => {
                   />
                 </a>
                 <a href="#" aria-label="payment system with paypal">
-                  <Image
+                  <img
                     src="/images/payment/payment-02.svg"
                     alt="paypal"
                     width={18}
@@ -362,7 +362,7 @@ const Footer = () => {
                   />
                 </a>
                 <a href="#" aria-label="payment system with master card">
-                  <Image
+                  <img
                     src="/images/payment/payment-03.svg"
                     alt="master card"
                     width={33}
@@ -370,7 +370,7 @@ const Footer = () => {
                   />
                 </a>
                 <a href="#" aria-label="payment system with apple pay">
-                  <Image
+                  <img
                     src="/images/payment/payment-04.svg"
                     alt="apple pay"
                     width={52.94}
@@ -378,7 +378,7 @@ const Footer = () => {
                   />
                 </a>
                 <a href="#" aria-label="payment system with google pay">
-                  <Image
+                  <img
                     src="/images/payment/payment-05.svg"
                     alt="google pay"
                     width={56}

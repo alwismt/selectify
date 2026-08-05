@@ -6,31 +6,31 @@ const SingleItem = ({ testimonial }: { testimonial: Testimonial }) => {
   return (
     <div className="shadow-testimonial bg-white rounded-[10px] py-7.5 px-4 sm:px-8.5 m-1">
       <div className="flex items-center gap-1 mb-5">
-        <Image
+        <img
           src="/images/icons/icon-star.svg"
           alt="star icon"
           width={15}
           height={15}
         />
-        <Image
+        <img
           src="/images/icons/icon-star.svg"
           alt="star icon"
           width={15}
           height={15}
         />
-        <Image
+        <img
           src="/images/icons/icon-star.svg"
           alt="star icon"
           width={15}
           height={15}
         />
-        <Image
+        <img
           src="/images/icons/icon-star.svg"
           alt="star icon"
           width={15}
           height={15}
         />
-        <Image
+        <img
           src="/images/icons/icon-star.svg"
           alt="star icon"
           width={15}
@@ -42,7 +42,7 @@ const SingleItem = ({ testimonial }: { testimonial: Testimonial }) => {
 
       <a href="#" className="flex items-center gap-4">
         <div className="w-12.5 h-12.5 rounded-full overflow-hidden">
-          <Image
+          <img
             src={testimonial.authorImg}
             alt="author"
             className="w-12.5 h-12.5 rounded-full overflow-hidden"

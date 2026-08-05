@@ -140,31 +140,31 @@ const SingleListItem = ({ item }: { item: Product }) => {
 
           <div className="flex items-center gap-2.5 mb-2">
             <div className="flex items-center gap-1">
-              <Image
+              <img
                 src="/images/icons/icon-star.svg"
                 alt="star icon"
                 width={15}
                 height={15}
               />
-              <Image
+              <img
                 src="/images/icons/icon-star.svg"
                 alt="star icon"
                 width={15}
                 height={15}
               />
-              <Image
+              <img
                 src="/images/icons/icon-star.svg"
                 alt="star icon"
                 width={15}
                 height={15}
               />
-              <Image
+              <img
                 src="/images/icons/icon-star.svg"
                 alt="star icon"
                 width={15}
                 height={15}
               />
-              <Image
+              <img
                 src="/images/icons/icon-star.svg"
                 alt="star icon"
                 width={15}

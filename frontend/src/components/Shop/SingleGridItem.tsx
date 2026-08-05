@@ -50,7 +50,6 @@ const SingleGridItem = ({ item }: { item: Product }) => {
       <div className="relative overflow-hidden flex items-center justify-center rounded-lg bg-white shadow-1 min-h-[270px] mb-4">
         {imageUrl ? (
           <img src={imageUrl} alt={item.title} width={250} height={250}/>
-          // <Image src={imageUrl} alt="" width={250} height={250} />
         ) : (
           <div className="flex items-center justify-center w-full min-h-[270px] bg-gray-2 text-dark-4 text-custom-sm">
             No image
@@ -124,31 +123,31 @@ const SingleGridItem = ({ item }: { item: Product }) => {
 
       <div className="flex items-center gap-2.5 mb-2">
         <div className="flex items-center gap-1">
-          <Image
+          <img
             src="/images/icons/icon-star.svg"
             alt="star icon"
             width={15}
             height={15}
           />
-          <Image
+          <img
             src="/images/icons/icon-star.svg"
             alt="star icon"
             width={15}
             height={15}
           />
-          <Image
+          <img
             src="/images/icons/icon-star.svg"
             alt="star icon"
             width={15}
             height={15}
           />
-          <Image
+          <img
             src="/images/icons/icon-star.svg"
             alt="star icon"
             width={15}
             height={15}
           />
-          <Image
+          <img
             src="/images/icons/icon-star.svg"
             alt="star icon"
             width={15}
