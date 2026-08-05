@@ -1,1 +1,2 @@
 *.tsx linguist-detectable=false
+frontend/src/components/** linguist-vendored
