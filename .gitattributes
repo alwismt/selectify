@@ -1,4 +1,4 @@
 *.tsx linguist-detectable=false
 *.css linguist-generated
-.js linguist-generated
+*.js linguist-generated
 frontend/src/components/** linguist-vendored
