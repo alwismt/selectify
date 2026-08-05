@@ -1,0 +1,13 @@
+-- Tables
+ALTER DEFAULT PRIVILEGES FOR ROLE selectify_owner
+    IN SCHEMA public
+    GRANT SELECT ON TABLES TO selectify_ro;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE selectify_owner
+    IN SCHEMA public
+    GRANT INSERT, SELECT, UPDATE, DELETE ON TABLES TO selectify_rw;
+
+-- Sequences
+ALTER DEFAULT PRIVILEGES FOR ROLE selectify_owner
+    IN SCHEMA public
+    GRANT USAGE, SELECT ON SEQUENCES TO selectify_rw;
