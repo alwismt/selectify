@@ -20,6 +20,7 @@ frontend/tsconfig.tsbuildinfo
 # Environment files
 .env.*
 !.env-example
+deploy/dev/cert/
 
 # IDE/editor temporary files
 .idea/
@@ -29,5 +30,3 @@ frontend/tsconfig.tsbuildinfo
 
 # macOS
 .DS_Store
-
-deploy/dev/cert/
