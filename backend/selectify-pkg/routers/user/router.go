@@ -21,6 +21,7 @@ func Register(r chi.Router) {
 
 		r.Route("/user", func(r chi.Router) {
 			r.MethodFunc(http.MethodGet, "/info", handlers.UserSessionHandlerFunc(UserInfo))
+
 			r.MethodFunc(http.MethodGet, "/addresses/default", handlers.UserSessionHandlerFunc(GetDefaultAddress))
 		})
 	})
