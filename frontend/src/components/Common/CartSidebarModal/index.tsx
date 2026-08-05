@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useCart } from "@/app/context/CartContext";
@@ -74,6 +75,7 @@ function SidebarCartItem({ item }: { item: CartItemType }) {
 }
 
 const CartSidebarModal = () => {
+  const router = useRouter();
   const { isCartModalOpen, closeCartModal } = useCartModalContext();
   const { cart, refetch } = useCart();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -97,7 +99,7 @@ const CartSidebarModal = () => {
       setOrderClientSecret(data.id, data.client_secret);
       await refetch?.();
       closeCartModal();
-      window.location.href = `/checkout?orderId=${data.id}`;
+      router.push(`/checkout?orderId=${data.id}`);
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : "Failed to create order. Please try again.");
     } finally {

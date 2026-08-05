@@ -65,7 +65,7 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
   const dispatch = useDispatch<AppDispatch>();
   const { refetch: refetchCart } = useCart();
   const { openCartModal } = useCartModalContext();
-  const [previewImg, setPreviewImg] = useState(0);
+  const [previewOverride, setPreviewOverride] = useState<number | null>(null);
 
   const [storage, setStorage] = useState("gb128");
   const [type, setType] = useState("active");
@@ -89,17 +89,8 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
     }
     return r;
   }, [variants]);
-  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
-  React.useEffect(() => {
-    setSelectedAttributes((prev) => {
-      const opts = attributeOptions;
-      const next: Record<string, string> = {};
-      for (const k of Object.keys(opts)) {
-        next[k] = opts[k].includes(prev[k]) ? prev[k] : opts[k][0] ?? "";
-      }
-      return Object.keys(next).length ? next : prev;
-    });
-  }, [attributeOptions]);
+  const [selectedAttributes, setSelectedAttributes] =
+    useState(initialAttributes);
   const selectedVariant = React.useMemo(
     () => findVariantByAttributes(variants, selectedAttributes),
     [variants, selectedAttributes]
@@ -222,11 +213,18 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
     [gallery]
   );
 
-  useEffect(() => {
-    if (!selectedVariant) return;
+  const autoPreviewIdx = React.useMemo(() => {
+    if (!selectedVariant) return 0;
     const idx = gallery.findIndex((g) => g.variantId === selectedVariant.id);
-    if (idx >= 0) setPreviewImg(idx);
-  }, [selectedVariant?.id, gallery]);
+    return idx >= 0 ? idx : 0;
+  }, [selectedVariant, gallery]);
+
+  const [prevVariantId, setPrevVariantId] = useState(selectedVariant?.id);
+  if (selectedVariant?.id !== prevVariantId) {
+    setPrevVariantId(selectedVariant?.id);
+    setPreviewOverride(null);
+  }
+  const previewImg = previewOverride ?? autoPreviewIdx;
 
   useEffect(() => {
     if (product?.title && typeof window !== "undefined") {
@@ -303,7 +301,7 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
                     <div className="flex flex-wrap sm:flex-nowrap gap-4.5 mt-6">
                       {galleryUrls.map((item, key) => (
                         <button
-                          onClick={() => setPreviewImg(key)}
+                          onClick={() => setPreviewOverride(key)}
                           key={key}
                           className={`flex items-center justify-center w-15 sm:w-25 h-15 sm:h-25 overflow-hidden rounded-lg bg-gray-2 shadow-1 ease-out duration-200 border-2 hover:border-blue ${key === previewImg
                             ? "border-blue"

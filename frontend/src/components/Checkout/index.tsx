@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useUser } from "@/app/context/UserContext";
@@ -20,6 +20,15 @@ import DeliveryForm, {
 } from "./DeliveryForm";
 import PaymentMethod from "./PaymentMethod";
 
+const subscribeNoop = () => () => {};
+
+function useOrderClientSecret(orderId: number): string | null {
+  return useSyncExternalStore(
+    subscribeNoop,
+    () => getOrderClientSecret(orderId),
+    () => null
+  );
+}
 function buildInitialDelivery(
   user: User | null,
   address: UserAddress | null
@@ -134,8 +143,10 @@ const Checkout = ({
   initialAddress,
 }: CheckoutProps) => {
   const { user } = useUser();
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [secretError, setSecretError] = useState<string | null>(null);
+  const clientSecret = useOrderClientSecret(orderId);
+  const secretError = clientSecret
+    ? null
+    : "Payment session expired. Please return to your cart and try checkout again.";
   const [submitting, setSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [deliveryErrors, setDeliveryErrors] = useState<DeliveryFormErrors>({});
@@ -144,17 +155,6 @@ const Checkout = ({
   );
 
   const orderError = initialOrder ? null : "Order not found.";
-
-  useEffect(() => {
-    const secret = getOrderClientSecret(orderId);
-    if (!secret) {
-      setSecretError(
-        "Payment session expired. Please return to your cart and try checkout again."
-      );
-      return;
-    }
-    setClientSecret(secret);
-  }, [orderId]);
 
   const handleDeliveryChange = (
     field: keyof DeliveryFormValues,

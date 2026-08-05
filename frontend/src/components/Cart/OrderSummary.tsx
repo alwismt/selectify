@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
 import { clientOrdersPost } from "@/lib/api/client";
 import { setOrderClientSecret } from "@/lib/stripe/clientSecret";
@@ -8,6 +9,7 @@ import { setOrderClientSecret } from "@/lib/stripe/clientSecret";
 const currencySymbol = (currency: string) => (currency === "EUR" ? "€" : "$");
 
 const OrderSummary = () => {
+  const router = useRouter();
   const { cart, refetch } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ const OrderSummary = () => {
       }
       setOrderClientSecret(data.id, data.client_secret);
       await refetch?.();
-      window.location.href = `/checkout?orderId=${data.id}`;
+      router.push(`/checkout?orderId=${data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create order. Please try again.");
     } finally {

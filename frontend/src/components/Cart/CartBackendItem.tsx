@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import type { CartItem as CartItemType } from "@/types/api/cart";
 import { useCart } from "@/app/context/CartContext";
 import { apiClientPatch, apiClientDelete } from "@/lib/api/client";
@@ -10,13 +10,10 @@ const currencySymbol = (currency: string) => (currency === "EUR" ? "€" : "$");
 
 const CartBackendItem = ({ item }: { item: CartItemType }) => {
   const { refetch } = useCart();
-  const [quantity, setQuantity] = useState(item.quantity);
+  const [pendingQuantity, setPendingQuantity] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setQuantity(item.quantity);
-  }, [item.quantity]);
+  const quantity = pendingQuantity ?? item.quantity;
 
   const { variant } = item;
   const { product, price_amount, currency, attributes, sku, available_qty } = variant;
@@ -33,13 +30,14 @@ const CartBackendItem = ({ item }: { item: CartItemType }) => {
     if (newQuantity > available_qty) return;
     setLoading(true);
     setError(null);
+    setPendingQuantity(newQuantity);
     try {
       await apiClientPatch(cartItem(item.id), { quantity: newQuantity });
-      setQuantity(newQuantity);
       await refetch();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {
+      setPendingQuantity(null);
       setLoading(false);
     }
   };
