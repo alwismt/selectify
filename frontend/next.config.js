@@ -20,9 +20,14 @@ function productFilesRemotePatterns() {
 }
 
 const nextConfig = {
+  allowedDevOrigins: [
+    "selectify.alwis.dev",
+    "localhost:3000",
+  ],
   images: {
     remotePatterns: productFilesRemotePatterns(),
   },
 };
+
 
 module.exports = nextConfig;
