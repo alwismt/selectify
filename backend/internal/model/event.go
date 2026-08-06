@@ -19,3 +19,12 @@ type EventData struct {
 	Payload json.RawMessage `json:"data" valid:"required~EVENT_DATA_REQUIRED"`
 	Date    *time.Time      `json:"date,omitempty" valid:"-"`
 }
+
+type EventEnvelope struct {
+	EventID       string          `json:"event_id"`
+	EventType     types.EventType `json:"event_type"`
+	Version       string          `json:"version"`
+	OccurredAt    time.Time       `json:"occurred_at"`
+	CorrelationID string          `json:"correlation_id"`
+	Payload       json.RawMessage `json:"payload"`
+}

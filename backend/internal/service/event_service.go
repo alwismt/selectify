@@ -21,15 +21,6 @@ import (
 
 const eventEnvelopeVersion = "1.0"
 
-type EventEnvelope struct {
-	EventID       string          `json:"event_id"`
-	EventType     types.EventType `json:"event_type"`
-	Version       string          `json:"version"`
-	OccurredAt    time.Time       `json:"occurred_at"`
-	CorrelationID string          `json:"correlation_id"`
-	Payload       json.RawMessage `json:"payload"`
-}
-
 type EventPublisher interface {
 	Publish(ctx context.Context, eventType types.EventType, payload any) error
 }
@@ -84,7 +75,7 @@ func (p *sqsEventPublisher) Publish(ctx context.Context, eventType types.EventTy
 	}
 
 	occurredAt := time.Now().UTC()
-	envelope := EventEnvelope{
+	envelope := model.EventEnvelope{
 		EventID:       uuid.New().String(),
 		EventType:     eventType,
 		Version:       eventEnvelopeVersion,

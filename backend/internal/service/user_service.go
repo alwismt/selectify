@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -10,12 +11,14 @@ import (
 	"alwis.dev/selectify/internal/logger"
 	"alwis.dev/selectify/internal/model"
 	"alwis.dev/selectify/internal/repo"
+	"alwis.dev/selectify/internal/types"
 )
 
 type UserService interface {
 	GetUserImage(ctx context.Context, user *model.User) (*model.UserFile, error)
 	UpsertUserImage(ctx context.Context, user *model.User, file io.Reader, contentType string) (*model.UserFile, error)
 	DeleteUserImage(ctx context.Context, user *model.User) error
+	ProcessUserLoggedIn(ctx context.Context, event *model.Event) error
 }
 
 type userService struct {
@@ -23,14 +26,16 @@ type userService struct {
 
 	txRepo       repo.TransactionRepo
 	userFileRepo repo.UserFileRepo
+	userRepo     repo.UserRepo
 }
 
-func NewUserService(storageService StorageService, txRepo repo.TransactionRepo, userFileRepo repo.UserFileRepo) UserService {
+func NewUserService(storageService StorageService, txRepo repo.TransactionRepo, userFileRepo repo.UserFileRepo, userRepo repo.UserRepo) UserService {
 	return &userService{
 		storageService: storageService,
 
 		txRepo:       txRepo,
 		userFileRepo: userFileRepo,
+		userRepo:     userRepo,
 	}
 }
 
@@ -128,6 +133,33 @@ func (s *userService) DeleteUserImage(ctx context.Context, user *model.User) err
 	}
 
 	tx.CanCommit = true
+	return nil
+}
+
+func (s *userService) ProcessUserLoggedIn(ctx context.Context, event *model.Event) error {
+	if event == nil || event.Data == nil {
+		return fmt.Errorf("event is required")
+	}
+
+	var payload struct {
+		UserID uint `json:"user_id"`
+	}
+	if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
+		return logger.Error(ctx, err, "failed to unmarshal user.logged_in payload")
+	}
+	if payload.UserID == 0 {
+		return fmt.Errorf("user_id is required in user.logged_in payload")
+	}
+
+	user, err := s.userRepo.GetUserById(ctx, payload.UserID)
+	if err != nil {
+		return logger.Errorf(ctx, err, "failed to get user %d for event %s", payload.UserID, event.ID)
+	}
+
+	if user.Status != types.UserStatusActive {
+		return fmt.Errorf("user %d is not active (status=%s)", user.ID, user.Status)
+	}
+
 	return nil
 }
 
