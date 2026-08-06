@@ -12,6 +12,7 @@ type Repo struct {
 	TxRepo              repo.TransactionRepo
 	UserRepo            repo.UserRepo
 	UserAddressRepo     repo.UserAddressRepo
+	UserFileRepo        repo.UserFileRepo
 	UserRoleRepo        repo.UserRoleRepo
 	UserSessionRepo     repo.UserSessionRepo
 }
@@ -26,6 +27,7 @@ func NewRepository() *Repo {
 	repository.ProductVariantsRepo = repo.NewProductVariantRepo(appEnv.dbConn)
 	repository.TxRepo = repo.NewTransactionRepository(appEnv.dbConn)
 	repository.UserRepo = repo.NewUserRepo(appEnv.dbConn)
+	repository.UserFileRepo = repo.NewUserFileRepo(appEnv.dbConn)
 	repository.UserAddressRepo = repo.NewUserAddressRepo(appEnv.dbConn)
 	repository.UserRoleRepo = repo.NewUserRoleRepo(appEnv.dbConn)
 	repository.UserSessionRepo = repo.NewUserSessionRepo(appEnv.dbConn)

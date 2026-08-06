@@ -28,6 +28,7 @@ var (
 	productVariantsRepo repo.ProductVariantsRepo
 	transactionRepo     repo.TransactionRepo
 	userRepo            repo.UserRepo
+	userFileRepo        repo.UserFileRepo
 	userRoleRepo        repo.UserRoleRepo
 	userSessionRepo     repo.UserSessionRepo
 )
@@ -53,6 +54,7 @@ func setupRepo() {
 	productVariantsRepo = repo.NewProductVariantRepo(ts.DB)
 	transactionRepo = repo.NewTransactionRepository(ts.DB)
 	userRepo = repo.NewUserRepo(ts.DB)
+	userFileRepo = repo.NewUserFileRepo(ts.DB)
 	userRoleRepo = repo.NewUserRoleRepo(ts.DB)
 	userSessionRepo = repo.NewUserSessionRepo(ts.DB)
 }

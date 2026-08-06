@@ -10,6 +10,7 @@ type SVC struct {
 	ProductService         service.ProductService
 	ProductVariantsService service.ProductVariantsService
 	PaymentService         service.PaymentService
+	UserService            service.UserService
 }
 
 func NewService() *SVC {
@@ -23,5 +24,6 @@ func NewService() *SVC {
 	svc.OrderService = service.NewOrderService(svc.CartService, appEnv.repo.OrderRepo, appEnv.repo.TxRepo, appEnv.repo.ProductVariantsRepo,
 		appEnv.grpcCli.PaymentClient, appEnv.repo.UserAddressRepo)
 	svc.PaymentService = service.NewPaymentService(appEnv.repo.OrderRepo, appEnv.repo.PaymentRepo)
+	svc.UserService = service.NewUserService(service.NewStorageService(), appEnv.repo.TxRepo, appEnv.repo.UserFileRepo)
 	return svc
 }
