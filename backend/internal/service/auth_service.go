@@ -28,7 +28,8 @@ type AuthService interface {
 }
 
 type authService struct {
-	jwtService JWTService
+	jwtService     JWTService
+	eventPublisher EventPublisher
 
 	txRepo       repo.TransactionRepo
 	userRepo     repo.UserRepo
@@ -36,10 +37,11 @@ type authService struct {
 	sessionRepo  repo.UserSessionRepo
 }
 
-func NewAuthService(jwtService JWTService, userRepo repo.UserRepo, txRepo repo.TransactionRepo, userRole repo.UserRoleRepo,
-	sessionRepo repo.UserSessionRepo) AuthService {
+func NewAuthService(jwtService JWTService, eventPublisher EventPublisher, userRepo repo.UserRepo, txRepo repo.TransactionRepo,
+	userRole repo.UserRoleRepo, sessionRepo repo.UserSessionRepo) AuthService {
 	return &authService{
-		jwtService: jwtService,
+		jwtService:     jwtService,
+		eventPublisher: eventPublisher,
 
 		txRepo:       txRepo,
 		userRepo:     userRepo,
@@ -109,7 +111,21 @@ func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest
 		return nil, ErrUserDeactivated
 	}
 
-	return svc.newUserSession(ctx, user.ID, userAgent, ip)
+	session, err := svc.newUserSession(ctx, user.ID, userAgent, ip)
+	if err != nil {
+		return nil, err
+	}
+
+	if pubErr := svc.eventPublisher.Publish(ctx, types.EventTypeUserLogin, map[string]any{
+		"user_id":    user.ID,
+		"session_id": session.SessionId.String(),
+		"ip":         ip,
+		"user_agent": userAgent,
+	}); pubErr != nil {
+		_ = logger.Error(ctx, pubErr, "failed to publish user.logged_in event")
+	}
+
+	return session, nil
 }
 
 func (svc *authService) newUserSession(ctx context.Context, userId uint, userAgent, ip string) (*model.UserSession, error) {
