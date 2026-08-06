@@ -4,6 +4,7 @@ import "alwis.dev/selectify/internal/repo"
 
 type Repo struct {
 	CartRepo            repo.CartRepo
+	EventRepo           repo.EventRepo
 	OrderRepo           repo.OrderRepo
 	ProductRepo         repo.ProductRepo
 	ProductFileRepo     repo.ProductFileRepo
@@ -21,6 +22,7 @@ func NewRepository() *Repo {
 	repository := new(Repo)
 
 	repository.CartRepo = repo.NewCartRepo(appEnv.dbConn)
+	repository.EventRepo = repo.NewEventRepo(appEnv.dbConn)
 	repository.OrderRepo = repo.NewOrderRepo(appEnv.dbConn)
 	repository.ProductRepo = repo.NewProductRepo(appEnv.dbConn)
 	repository.ProductFileRepo = repo.NewProductFileRepo(appEnv.dbConn)
