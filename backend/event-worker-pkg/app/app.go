@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"io"
 
 	"alwis.dev/selectify/internal/db"
 	"alwis.dev/selectify/internal/logger"
@@ -44,15 +43,4 @@ func databaseConnection() *db.DatabaseConnection {
 	}
 
 	return database
-}
-
-// noopStorage satisfies StorageService without requiring S3 for the event worker.
-type noopStorage struct{}
-
-func (noopStorage) UploadFile(_ context.Context, _ io.Reader, _ string, _ string) error {
-	return nil
-}
-
-func (noopStorage) DeleteFile(_ context.Context, _ string) error {
-	return nil
 }

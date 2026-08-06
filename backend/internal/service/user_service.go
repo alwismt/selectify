@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 
+	"alwis.dev/selectify/internal/email"
 	"alwis.dev/selectify/internal/logger"
 	"alwis.dev/selectify/internal/model"
 	"alwis.dev/selectify/internal/repo"
@@ -21,17 +23,40 @@ type UserService interface {
 	ProcessUserLoggedIn(ctx context.Context, event *model.Event) error
 }
 
+type loginNotificationData struct {
+	FirstName   string
+	LastName    string
+	LoggedInAt  string
+	IP          string
+	UserAgent   string
+	Country     string
+	City        string
+	Subdivision string
+	Timezone    string
+}
+
 type userService struct {
 	storageService StorageService
+	emailService   EmailService
+	geoIPService   GeoIPService
 
 	txRepo       repo.TransactionRepo
 	userFileRepo repo.UserFileRepo
 	userRepo     repo.UserRepo
 }
 
-func NewUserService(storageService StorageService, txRepo repo.TransactionRepo, userFileRepo repo.UserFileRepo, userRepo repo.UserRepo) UserService {
+func NewUserService(
+	storageService StorageService,
+	txRepo repo.TransactionRepo,
+	userFileRepo repo.UserFileRepo,
+	userRepo repo.UserRepo,
+	emailService EmailService,
+	geoIPService GeoIPService,
+) UserService {
 	return &userService{
 		storageService: storageService,
+		emailService:   emailService,
+		geoIPService:   geoIPService,
 
 		txRepo:       txRepo,
 		userFileRepo: userFileRepo,
@@ -142,7 +167,10 @@ func (s *userService) ProcessUserLoggedIn(ctx context.Context, event *model.Even
 	}
 
 	var payload struct {
-		UserID uint `json:"user_id"`
+		UserID    uint   `json:"user_id"`
+		SessionID string `json:"session_id"`
+		IP        string `json:"ip"`
+		UserAgent string `json:"user_agent"`
 	}
 	if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
 		return logger.Error(ctx, err, "failed to unmarshal user.logged_in payload")
@@ -158,6 +186,56 @@ func (s *userService) ProcessUserLoggedIn(ctx context.Context, event *model.Even
 
 	if user.Status != types.UserStatusActive {
 		return fmt.Errorf("user %d is not active (status=%s)", user.ID, user.Status)
+	}
+	if user.Email == "" {
+		return fmt.Errorf("user %d has no email address", user.ID)
+	}
+	if s.emailService == nil {
+		return fmt.Errorf("email service is not configured")
+	}
+
+	ip := payload.IP
+	if ip == "" {
+		ip = "unknown"
+	}
+	userAgent := payload.UserAgent
+	if userAgent == "" {
+		userAgent = "unknown"
+	}
+
+	firstName := user.FirstName
+	if firstName == "" {
+		firstName = "there"
+	}
+
+	lastname := user.LastName
+	if lastname == "" {
+		lastname = ""
+	}
+
+	data := loginNotificationData{
+		FirstName:  firstName,
+		LastName:   lastname,
+		LoggedInAt: time.Now().UTC().Format("2006-01-02 15:04:05 UTC"),
+		IP:         ip,
+		UserAgent:  userAgent,
+	}
+	if s.geoIPService != nil && ip != "unknown" {
+		loc := s.geoIPService.Lookup(ip)
+		data.Country = loc.Country
+		data.City = loc.City
+		data.Subdivision = loc.Subdivision
+		data.Timezone = loc.Timezone
+	}
+
+	err = s.emailService.SendTemplate(ctx, TemplateMessage{
+		To:       user.Email,
+		Subject:  "New login to your Selectify account",
+		Template: email.TemplateLoginNotification,
+		Data:     data,
+	})
+	if err != nil {
+		return logger.Errorf(ctx, err, "failed to send login notification email to user %d", user.ID)
 	}
 
 	return nil

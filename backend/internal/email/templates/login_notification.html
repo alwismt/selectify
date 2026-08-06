@@ -1,0 +1,33 @@
+<p>Hi {{.FirstName}} {{.LastName}},</p>
+<p>We noticed a new login to your Selectify account.</p>
+<table role="presentation" cellspacing="0" cellpadding="0" style="margin:16px 0;font-size:14px;line-height:1.6;">
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;vertical-align:top;">Time</td>
+    <td style="padding:4px 0;">{{.LoggedInAt}}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;vertical-align:top;">IP address</td>
+    <td style="padding:4px 0;">{{.IP}}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;vertical-align:top;">Country</td>
+    <td style="padding:4px 0;">{{.Country}}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;vertical-align:top;">City</td>
+    <td style="padding:4px 0;">{{.City}}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;vertical-align:top;">Region</td>
+    <td style="padding:4px 0;">{{.Subdivision}}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;vertical-align:top;">Timezone</td>
+    <td style="padding:4px 0;">{{.Timezone}}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;vertical-align:top;">Device</td>
+    <td style="padding:4px 0;">{{.UserAgent}}</td>
+  </tr>
+</table>
+<p>If this was you, no action is needed. If you did not sign in, please secure your account immediately.</p>

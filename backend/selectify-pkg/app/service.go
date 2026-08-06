@@ -26,6 +26,6 @@ func NewService() *SVC {
 	svc.OrderService = service.NewOrderService(svc.CartService, appEnv.repo.OrderRepo, appEnv.repo.TxRepo, appEnv.repo.ProductVariantsRepo,
 		appEnv.grpcCli.PaymentClient, appEnv.repo.UserAddressRepo)
 	svc.PaymentService = service.NewPaymentService(appEnv.repo.OrderRepo, appEnv.repo.PaymentRepo)
-	svc.UserService = service.NewUserService(service.NewStorageService(), appEnv.repo.TxRepo, appEnv.repo.UserFileRepo, appEnv.repo.UserRepo)
+	svc.UserService = service.NewUserService(service.NewStorageService(), appEnv.repo.TxRepo, appEnv.repo.UserFileRepo, appEnv.repo.UserRepo, nil, nil)
 	return svc
 }

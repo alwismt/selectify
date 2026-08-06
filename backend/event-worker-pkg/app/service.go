@@ -11,10 +11,12 @@ type SVC struct {
 func NewService() *SVC {
 	svc := new(SVC)
 	svc.UserService = service.NewUserService(
-		noopStorage{},
+		nil,
 		appEnv.repo.TxRepo,
 		appEnv.repo.UserFileRepo,
 		appEnv.repo.UserRepo,
+		service.NewEmailService(),
+		service.NewGeoIPService(),
 	)
 	return svc
 }
