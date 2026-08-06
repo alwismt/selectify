@@ -7,6 +7,7 @@ export const API_PATHS = {
   cartItems: "/cart/items",
   authLogin: "/auth/login",
   userInfo: "/user/info",
+  userMe: "/user/me",
   userDefaultAddress: "/user/addresses/default",
   logout: "/logout",
 } as const;
@@ -58,4 +59,14 @@ export function productFileUrl(fileId: string | null | undefined): string {
   const base = getProductFilesBaseUrl();
   if (!base || !fileId) return "";
   return `${base}/products/${fileId}`;
+}
+
+/**
+ * Public image URL for a user profile file id.
+ * Shape: `{base}/users/{fileId}` (no extension).
+ */
+export function userFileUrl(fileId: string | null | undefined): string {
+  const base = getProductFilesBaseUrl();
+  if (!base || !fileId) return "";
+  return `${base}/users/${fileId}`;
 }

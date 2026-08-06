@@ -1,6 +1,7 @@
 import { apiUrl, orderAddress } from "./config";
 import type { Order, OrderAddress, OrderShippingAddressInput } from "@/types/api/order";
 import type { UserAddress } from "@/types/api/userAddress";
+import { isUserFile, type UserFile } from "@/types/api/userFile";
 
 export type ClientRequestInit = Omit<RequestInit, "method">;
 
@@ -59,6 +60,50 @@ export async function clientUserDefaultAddressGet(): Promise<UserAddress | null>
     return null;
   }
   return data as UserAddress;
+}
+
+/** Same-origin GET /api/user/me (proxy). Returns null if no avatar. */
+export async function clientUserFileGet(): Promise<UserFile | null> {
+  const res = await fetch("/api/user/me", {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`API error ${res.status}: ${res.statusText}`);
+  }
+  const data: unknown = await res.json();
+  return isUserFile(data) ? data : null;
+}
+
+/** Same-origin POST /api/user/me (proxy) with multipart image upload. */
+export async function clientUserFileUpload(file: File): Promise<UserFile> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch("/api/user/me", {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+  if (!res.ok) {
+    throw new Error(`API error ${res.status}: ${res.statusText}`);
+  }
+  const data: unknown = await res.json();
+  if (!isUserFile(data)) {
+    throw new Error("Invalid avatar response");
+  }
+  return data;
+}
+
+/** Same-origin DELETE /api/user/me (proxy). */
+export async function clientUserFileDelete(): Promise<void> {
+  const res = await fetch("/api/user/me", {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`API error ${res.status}: ${res.statusText}`);
+  }
 }
 
 function clientFetch(path: string, init?: RequestInit): Promise<Response> {

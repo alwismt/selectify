@@ -1,4 +1,5 @@
 import { getServerUser } from "@/lib/api/getServerUser";
+import { getServerUserFile } from "@/lib/api/getServerUserFile";
 import ClientSiteLayout from "./ClientSiteLayout";
 
 export default async function SiteLayout({
@@ -6,8 +7,17 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const initialUser = await getServerUser();
+  const [initialUser, initialUserFile] = await Promise.all([
+    getServerUser(),
+    getServerUserFile(),
+  ]);
+
   return (
-    <ClientSiteLayout initialUser={initialUser}>{children}</ClientSiteLayout>
+    <ClientSiteLayout
+      initialUser={initialUser}
+      initialUserFile={initialUser ? initialUserFile : null}
+    >
+      {children}
+    </ClientSiteLayout>
   );
 }

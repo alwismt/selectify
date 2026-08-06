@@ -1,12 +1,12 @@
 "use client";
 import { useUser } from "@/app/context/UserContext";
-import { formatMemberSince } from "@/lib/format";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import type { Order } from "@/types/api/order";
 import Breadcrumb from "../Common/Breadcrumb";
+import UserAvatar from "../Common/UserAvatar";
 import AddressModal from "./AddressModal";
+import AvatarUpload from "./AvatarUpload";
 import Orders from "../Orders";
 
 interface MyAccountProps {
@@ -14,7 +14,7 @@ interface MyAccountProps {
 }
 
 const MyAccount = ({ initialOrders }: MyAccountProps) => {
-  const { user } = useUser();
+  const { user, userFile } = useUser();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [addressModal, setAddressModal] = useState(false);
 
@@ -61,11 +61,14 @@ const MyAccount = ({ initialOrders }: MyAccountProps) => {
               <div className="flex xl:flex-col">
                 <div className="hidden lg:flex flex-wrap items-center gap-5 py-6 px-4 sm:px-7.5 xl:px-9 border-r xl:border-r-0 xl:border-b border-gray-3">
                   <div className="max-w-[64px] w-full h-16 rounded-full overflow-hidden">
-                    <img
-                      src="/images/users/user-04.jpg"
-                      alt="user"
-                      width={64}
-                      height={64}
+                    <UserAvatar
+                      userFile={userFile}
+                      size={64}
+                      fallback={
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-1 text-custom-xs text-dark-4">
+                          {displayName.charAt(0).toUpperCase()}
+                        </div>
+                      }
                     />
                   </div>
 
@@ -73,7 +76,6 @@ const MyAccount = ({ initialOrders }: MyAccountProps) => {
                     <p className="font-medium text-dark mb-0.5">
                       {displayName}
                     </p>
-                    <p className="text-custom-xs">{formatMemberSince(user.created_at)}</p>
                   </div>
                 </div>
 
@@ -611,6 +613,8 @@ const MyAccount = ({ initialOrders }: MyAccountProps) => {
             >
               <form>
                 <div className="bg-white shadow-1 rounded-xl p-4 sm:p-8.5">
+                  <AvatarUpload />
+
                   <div className="flex flex-col lg:flex-row gap-5 sm:gap-8 mb-5">
                     <div className="w-full">
                       <label htmlFor="firstName" className="block mb-2.5">
