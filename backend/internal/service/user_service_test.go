@@ -77,7 +77,7 @@ func (m *mockUserFileRepo) DeleteByUserIDWithTx(_ context.Context, _ sqlx.Execer
 func TestUserService_GetUserImage(t *testing.T) {
 	existing := &model.UserFile{ID: uuid.New(), UserID: 1, ContentType: "image/png"}
 	userFileRepo := &mockUserFileRepo{getByUserIDFile: existing}
-	svc := NewUserService(&mockStorageService{}, &mockTransactionRepo{}, userFileRepo)
+	svc := NewUserService(&mockStorageService{}, &mockTransactionRepo{}, userFileRepo, nil)
 
 	userFile, err := svc.GetUserImage(context.Background(), &model.User{ID: 1})
 	require.NoError(t, err)
@@ -85,7 +85,7 @@ func TestUserService_GetUserImage(t *testing.T) {
 }
 
 func TestUserService_GetUserImage_NoExistingFile(t *testing.T) {
-	svc := NewUserService(&mockStorageService{}, &mockTransactionRepo{}, &mockUserFileRepo{})
+	svc := NewUserService(&mockStorageService{}, &mockTransactionRepo{}, &mockUserFileRepo{}, nil)
 
 	userFile, err := svc.GetUserImage(context.Background(), &model.User{ID: 1})
 	require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestUserService_UpsertUserImage(t *testing.T) {
 	storage := &mockStorageService{}
 	txRepo := &mockTransactionRepo{}
 	userFileRepo := &mockUserFileRepo{}
-	svc := NewUserService(storage, txRepo, userFileRepo)
+	svc := NewUserService(storage, txRepo, userFileRepo, nil)
 	user := &model.User{ID: 1}
 
 	userFile, err := svc.UpsertUserImage(context.Background(), user, strings.NewReader("image-bytes"), "image/png")
@@ -118,7 +118,7 @@ func TestUserService_UpsertUserImage_RollsBackWhenUploadFails(t *testing.T) {
 	txRepo := &mockTransactionRepo{}
 	oldFile := &model.UserFile{ID: uuid.New(), UserID: 1, ContentType: "image/jpeg"}
 	userFileRepo := &mockUserFileRepo{getByUserIDFile: oldFile}
-	svc := NewUserService(storage, txRepo, userFileRepo)
+	svc := NewUserService(storage, txRepo, userFileRepo, nil)
 	user := &model.User{ID: 1}
 
 	userFile, err := svc.UpsertUserImage(context.Background(), user, strings.NewReader("image-bytes"), "image/png")
@@ -134,7 +134,7 @@ func TestUserService_UpsertUserImage_ReplacesExistingImage(t *testing.T) {
 	storage := &mockStorageService{}
 	txRepo := &mockTransactionRepo{}
 	userFileRepo := &mockUserFileRepo{getByUserIDFile: oldFile}
-	svc := NewUserService(storage, txRepo, userFileRepo)
+	svc := NewUserService(storage, txRepo, userFileRepo, nil)
 	user := &model.User{ID: 1}
 
 	userFile, err := svc.UpsertUserImage(context.Background(), user, strings.NewReader("new-image-bytes"), "image/png")
@@ -151,7 +151,7 @@ func TestUserService_DeleteUserImage(t *testing.T) {
 	storage := &mockStorageService{}
 	txRepo := &mockTransactionRepo{}
 	userFileRepo := &mockUserFileRepo{getByUserIDFile: userFile}
-	svc := NewUserService(storage, txRepo, userFileRepo)
+	svc := NewUserService(storage, txRepo, userFileRepo, nil)
 
 	err := svc.DeleteUserImage(context.Background(), &model.User{ID: 1})
 	require.NoError(t, err)
@@ -164,7 +164,7 @@ func TestUserService_DeleteUserImage_NoExistingFile(t *testing.T) {
 	storage := &mockStorageService{}
 	txRepo := &mockTransactionRepo{}
 	userFileRepo := &mockUserFileRepo{}
-	svc := NewUserService(storage, txRepo, userFileRepo)
+	svc := NewUserService(storage, txRepo, userFileRepo, nil)
 
 	err := svc.DeleteUserImage(context.Background(), &model.User{ID: 1})
 	require.NoError(t, err)
@@ -178,7 +178,7 @@ func TestUserService_DeleteUserImage_RollsBackWhenStorageDeleteFails(t *testing.
 	storage := &mockStorageService{deleteErr: errors.New("delete failed")}
 	txRepo := &mockTransactionRepo{}
 	userFileRepo := &mockUserFileRepo{getByUserIDFile: userFile}
-	svc := NewUserService(storage, txRepo, userFileRepo)
+	svc := NewUserService(storage, txRepo, userFileRepo, nil)
 
 	err := svc.DeleteUserImage(context.Background(), &model.User{ID: 1})
 	require.Error(t, err)
