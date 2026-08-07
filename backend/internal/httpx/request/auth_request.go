@@ -20,16 +20,24 @@ func (req *UserRegisterRequest) Validate() error {
 	return nil
 }
 
-//func (req *UserRegisterRequest) NewUser() *model.User {
-//	return &model.User{
-//		Email:     req.Email,
-//		FirstName: req.FirstName,
-//		LastName:  req.LastName,
-//		Phone:     req.Phone,
-//	}
-//}
-
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email,max=255"`
 	Password string `json:"password" validate:"required,min=8,max=72"`
+}
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email" validate:"required,email,max=255"`
+}
+
+type ResetPasswordRequest struct {
+	Token           string `json:"token" validate:"required,min=1,max=128"`
+	Password        string `json:"password" validate:"required,min=8,max=72"`
+	ConfirmPassword string `json:"confirm_password" validate:"required,min=8,max=72"`
+}
+
+func (req *ResetPasswordRequest) Validate() error {
+	if req.Password != req.ConfirmPassword {
+		return errors.New("passwords do not match")
+	}
+	return nil
 }

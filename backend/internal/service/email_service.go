@@ -112,7 +112,6 @@ func (s *emailService) Send(ctx context.Context, msg EmailMessage) error {
 		return logger.Errorf(ctx, err, "failed to send email to %s", msg.To)
 	}
 
-	logger.Infof(ctx, "email sent successfully to %s subject=%q", msg.To, msg.Subject)
 	return nil
 }
 

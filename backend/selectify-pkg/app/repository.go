@@ -6,6 +6,7 @@ type Repo struct {
 	CartRepo            repo.CartRepo
 	EventRepo           repo.EventRepo
 	OrderRepo           repo.OrderRepo
+	PasswordResetRepo   repo.PasswordResetRepo
 	ProductRepo         repo.ProductRepo
 	ProductFileRepo     repo.ProductFileRepo
 	ProductVariantsRepo repo.ProductVariantsRepo
@@ -24,6 +25,7 @@ func NewRepository() *Repo {
 	repository.CartRepo = repo.NewCartRepo(appEnv.dbConn)
 	repository.EventRepo = repo.NewEventRepo(appEnv.dbConn)
 	repository.OrderRepo = repo.NewOrderRepo(appEnv.dbConn)
+	repository.PasswordResetRepo = repo.NewPasswordResetRepo(appEnv.dbConn)
 	repository.ProductRepo = repo.NewProductRepo(appEnv.dbConn)
 	repository.ProductFileRepo = repo.NewProductFileRepo(appEnv.dbConn)
 	repository.ProductVariantsRepo = repo.NewProductVariantRepo(appEnv.dbConn)

@@ -16,9 +16,6 @@ func Register(r chi.Router) {
 	c := new(controller).init()
 
 	r.Group(func(r chi.Router) {
-		//sessionRepo := app.Repository().UserSessionRepo
-		//r.Use(middleware.ContextMiddleware(sessionRepo))
-
 		r.Route("/user", func(r chi.Router) {
 			r.MethodFunc(http.MethodGet, "/info", handlers.UserSessionHandlerFunc(UserInfo))
 

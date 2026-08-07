@@ -19,14 +19,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SigninPage() {
+type SigninPageProps = {
+  searchParams: Promise<{ reset?: string }>;
+};
+
+export default async function SigninPage({ searchParams }: SigninPageProps) {
   const user = await getServerUser();
   if (user) {
     redirect("/");
   }
+  const params = await searchParams;
   return (
     <main>
-      <Signin />
+      <Signin resetSuccess={params.reset === "1"} />
     </main>
   );
 }

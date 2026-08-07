@@ -19,7 +19,7 @@ func NewService() *SVC {
 	svc.JWTService = service.NewJWTService()
 	svc.EventPublisher = service.NewSQSEventPublisher(appEnv.repo.EventRepo)
 	svc.AuthService = service.NewAuthService(svc.JWTService, svc.EventPublisher, appEnv.repo.UserRepo, appEnv.repo.TxRepo,
-		appEnv.repo.UserRoleRepo, appEnv.repo.UserSessionRepo)
+		appEnv.repo.UserRoleRepo, appEnv.repo.UserSessionRepo, appEnv.repo.PasswordResetRepo)
 	svc.ProductService = service.NewProductService(appEnv.repo.ProductRepo, appEnv.repo.ProductFileRepo)
 	svc.ProductVariantsService = service.NewProductVariantsService(appEnv.repo.ProductVariantsRepo, appEnv.repo.ProductFileRepo)
 	svc.CartService = service.NewCartService(appEnv.repo.CartRepo, appEnv.repo.ProductRepo, appEnv.repo.ProductVariantsRepo)

@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
+	"net/url"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +25,8 @@ type UserService interface {
 	UpsertUserImage(ctx context.Context, user *model.User, file io.Reader, contentType string) (*model.UserFile, error)
 	DeleteUserImage(ctx context.Context, user *model.User) error
 	ProcessUserLoggedIn(ctx context.Context, event *model.Event) error
+	ProcessPasswordResetRequested(ctx context.Context, event *model.Event) error
+	ProcessPasswordChanged(ctx context.Context, event *model.Event) error
 }
 
 type loginNotificationData struct {
@@ -33,6 +39,21 @@ type loginNotificationData struct {
 	City        string
 	Subdivision string
 	Timezone    string
+}
+
+type passwordResetEmailData struct {
+	FirstName   string
+	Location    string
+	IP          string
+	RequestedAt string
+	ResetURL    string
+}
+
+type passwordChangedEmailData struct {
+	FirstName string
+	Location  string
+	IP        string
+	ChangedAt string
 }
 
 type userService struct {
@@ -239,6 +260,171 @@ func (s *userService) ProcessUserLoggedIn(ctx context.Context, event *model.Even
 	}
 
 	return nil
+}
+
+func (s *userService) ProcessPasswordResetRequested(ctx context.Context, event *model.Event) error {
+	if event == nil || event.Data == nil {
+		return fmt.Errorf("event is required")
+	}
+
+	var payload struct {
+		UserID          uint   `json:"user_id"`
+		PasswordResetID string `json:"password_reset_id"`
+		RawToken        string `json:"raw_token"`
+		IP              string `json:"ip"`
+		UserAgent       string `json:"user_agent"`
+	}
+	if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
+		return logger.Error(ctx, err, "failed to unmarshal user.password_reset_requested payload")
+	}
+	if payload.UserID == 0 {
+		return fmt.Errorf("user_id is required in user.password_reset_requested payload")
+	}
+	if payload.RawToken == "" {
+		return fmt.Errorf("raw_token is required in user.password_reset_requested payload")
+	}
+
+	user, err := s.requireActiveUserForEmail(ctx, payload.UserID, event.ID)
+	if err != nil {
+		return err
+	}
+
+	frontendBase := strings.TrimRight(os.Getenv("EVT_FRONTEND_BASE_URL"), "/")
+	if frontendBase == "" {
+		return fmt.Errorf("EVT_FRONTEND_BASE_URL is required")
+	}
+
+	ip := payload.IP
+	if ip == "" {
+		ip = "unknown"
+	}
+
+	data := passwordResetEmailData{
+		FirstName:   displayFirstName(user),
+		Location:    s.formatLocation(ip),
+		IP:          maskIP(ip),
+		RequestedAt: time.Now().UTC().Format("January 2, 2006, 15:04"),
+		ResetURL:    fmt.Sprintf("%s/reset-password?token=%s", frontendBase, url.QueryEscape(payload.RawToken)),
+	}
+
+	err = s.emailService.SendTemplate(ctx, TemplateMessage{
+		To:       user.Email,
+		Subject:  "Reset your Selectify password",
+		Template: email.TemplatePasswordReset,
+		Data:     data,
+	})
+	if err != nil {
+		return logger.Errorf(ctx, err, "failed to send password reset email to user %d", user.ID)
+	}
+
+	return nil
+}
+
+func (s *userService) ProcessPasswordChanged(ctx context.Context, event *model.Event) error {
+	if event == nil || event.Data == nil {
+		return fmt.Errorf("event is required")
+	}
+
+	var payload struct {
+		UserID    uint   `json:"user_id"`
+		IP        string `json:"ip"`
+		UserAgent string `json:"user_agent"`
+	}
+	if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
+		return logger.Error(ctx, err, "failed to unmarshal user.password_changed payload")
+	}
+	if payload.UserID == 0 {
+		return fmt.Errorf("user_id is required in user.password_changed payload")
+	}
+
+	user, err := s.requireActiveUserForEmail(ctx, payload.UserID, event.ID)
+	if err != nil {
+		return err
+	}
+
+	ip := payload.IP
+	if ip == "" {
+		ip = "unknown"
+	}
+
+	data := passwordChangedEmailData{
+		FirstName: displayFirstName(user),
+		Location:  s.formatLocation(ip),
+		IP:        maskIP(ip),
+		ChangedAt: time.Now().UTC().Format("January 2, 2006, 15:04"),
+	}
+
+	err = s.emailService.SendTemplate(ctx, TemplateMessage{
+		To:       user.Email,
+		Subject:  "Your Selectify password was changed",
+		Template: email.TemplatePasswordChanged,
+		Data:     data,
+	})
+	if err != nil {
+		return logger.Errorf(ctx, err, "failed to send password changed email to user %d", user.ID)
+	}
+
+	return nil
+}
+
+func (s *userService) requireActiveUserForEmail(ctx context.Context, userID uint, eventID string) (*model.User, error) {
+	user, err := s.userRepo.GetUserById(ctx, userID)
+	if err != nil {
+		return nil, logger.Errorf(ctx, err, "failed to get user %d for event %s", userID, eventID)
+	}
+	if user.Status != types.UserStatusActive {
+		return nil, fmt.Errorf("user %d is not active (status=%s)", user.ID, user.Status)
+	}
+	if user.Email == "" {
+		return nil, fmt.Errorf("user %d has no email address", user.ID)
+	}
+	if s.emailService == nil {
+		return nil, fmt.Errorf("email service is not configured")
+	}
+	return user, nil
+}
+
+func (s *userService) formatLocation(ip string) string {
+	if s.geoIPService == nil || ip == "" || ip == "unknown" {
+		return "Unknown"
+	}
+	loc := s.geoIPService.Lookup(ip)
+	switch {
+	case loc.City != "" && loc.Country != "":
+		return loc.City + ", " + loc.Country
+	case loc.Country != "":
+		return loc.Country
+	case loc.City != "":
+		return loc.City
+	default:
+		return "Unknown"
+	}
+}
+
+func displayFirstName(user *model.User) string {
+	if user.FirstName == "" {
+		return "there"
+	}
+	return user.FirstName
+}
+
+func maskIP(ip string) string {
+	if ip == "" || ip == "unknown" {
+		return "unknown"
+	}
+	parsed := net.ParseIP(ip)
+	if parsed == nil {
+		return ip
+	}
+	if v4 := parsed.To4(); v4 != nil {
+		return fmt.Sprintf("%d.xxx.xxx.xxx", v4[0])
+	}
+	// IPv6: keep first hextet only
+	parts := strings.Split(ip, ":")
+	if len(parts) == 0 {
+		return "unknown"
+	}
+	return parts[0] + ":xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx"
 }
 
 func userImageObjectKey(userFileID uuid.UUID) string {

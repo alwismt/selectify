@@ -12,6 +12,8 @@ var templateFS embed.FS
 
 const (
 	TemplateLoginNotification = "login_notification"
+	TemplatePasswordReset     = "password_reset"
+	TemplatePasswordChanged   = "password_changed"
 )
 
 var templates *template.Template

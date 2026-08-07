@@ -110,8 +110,7 @@ func (w *sqsWorker) Run(ctx context.Context) {
 		default:
 		}
 
-		logger.Infof(ctx, "polling SQS queue (interval=%ds wait=%ds max=%d)",
-			int(w.pollInterval.Seconds()), w.waitTime, w.maxMessages)
+		logger.Info(ctx, "polling SQS queue")
 
 		out, err := w.client.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
 			QueueUrl:            aws.String(w.queueURL),

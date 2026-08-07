@@ -16,4 +16,6 @@ var HandlerRegistry map[types.EventType]EventHandler
 func InitiateHandlerRegistry() {
 	HandlerRegistry = make(map[types.EventType]EventHandler)
 	HandlerRegistry[types.EventTypeUserLogin] = UserLoggedInEventHandler()
+	HandlerRegistry[types.EventTypePasswordResetRequested] = PasswordResetRequestedEventHandler()
+	HandlerRegistry[types.EventTypePasswordChanged] = PasswordChangedEventHandler()
 }

@@ -18,6 +18,7 @@ type UserRepo interface {
 	AddUserWithTx(ctx context.Context, tx sqlx.QueryerContext, user *model.User) error
 	GetUserByEmail(ctx context.Context, email string) (user *model.User, err error)
 	GetUserById(ctx context.Context, id uint) (user *model.User, err error)
+	UpdatePasswordHash(ctx context.Context, userID uint, passwordHash string) error
 }
 
 type userRepo struct {
@@ -82,6 +83,22 @@ func (uR *userRepo) GetUserById(ctx context.Context, id uint) (user *model.User,
 		return
 	}
 	return
+}
+
+func (uR *userRepo) UpdatePasswordHash(ctx context.Context, userID uint, passwordHash string) error {
+	query := `UPDATE users SET password_hash = $1 WHERE id = $2`
+	result, err := uR.rwDb.ExecContext(ctx, query, passwordHash, userID)
+	if err != nil {
+		return logger.Errorf(ctx, err, "Failed to update password hash for user %d", userID)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return logger.Errorf(ctx, err, "Failed to read rows affected updating password for user %d", userID)
+	}
+	if rows == 0 {
+		return httpx.ErrUserNotFound
+	}
+	return nil
 }
 
 func (uR *userRepo) AddUserWithRole(ctx context.Context, tx sqlx.QueryerContext, user *model.User, role *model.UserRole) error {
