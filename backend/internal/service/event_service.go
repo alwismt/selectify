@@ -23,6 +23,9 @@ const eventEnvelopeVersion = "1.0"
 
 type EventPublisher interface {
 	Publish(ctx context.Context, eventType types.EventType, payload any) error
+	// PublishWithQueuePayload persists dbPayload in the events table and sends
+	// queuePayload in the SQS envelope (so secrets can stay out of the queue).
+	PublishWithQueuePayload(ctx context.Context, eventType types.EventType, dbPayload, queuePayload any) error
 }
 
 type sqsEventPublisher struct {
@@ -69,9 +72,18 @@ func NewSQSEventPublisher(eventRepo repo.EventRepo) EventPublisher {
 }
 
 func (p *sqsEventPublisher) Publish(ctx context.Context, eventType types.EventType, payload any) error {
-	payloadJSON, err := json.Marshal(payload)
+	return p.PublishWithQueuePayload(ctx, eventType, payload, payload)
+}
+
+func (p *sqsEventPublisher) PublishWithQueuePayload(ctx context.Context, eventType types.EventType, dbPayload, queuePayload any) error {
+	dbPayloadJSON, err := json.Marshal(dbPayload)
 	if err != nil {
-		return logger.Error(ctx, err, "failed to marshal event payload")
+		return logger.Error(ctx, err, "failed to marshal event db payload")
+	}
+
+	queuePayloadJSON, err := json.Marshal(queuePayload)
+	if err != nil {
+		return logger.Error(ctx, err, "failed to marshal event queue payload")
 	}
 
 	occurredAt := time.Now().UTC()
@@ -81,14 +93,14 @@ func (p *sqsEventPublisher) Publish(ctx context.Context, eventType types.EventTy
 		Version:       eventEnvelopeVersion,
 		OccurredAt:    occurredAt,
 		CorrelationID: uuid.New().String(),
-		Payload:       payloadJSON,
+		Payload:       queuePayloadJSON,
 	}
 
 	event := &model.Event{
 		ID: envelope.EventID,
 		Data: &model.EventData{
 			Type:    eventType,
-			Payload: payloadJSON,
+			Payload: dbPayloadJSON,
 			Date:    &occurredAt,
 		},
 		ReceivedDate: occurredAt,

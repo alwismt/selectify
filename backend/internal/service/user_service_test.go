@@ -220,6 +220,10 @@ func (m *mockUserRepo) GetUserById(_ context.Context, _ uint) (*model.User, erro
 	return m.user, m.err
 }
 
+func (m *mockUserRepo) UpdatePasswordHash(_ context.Context, _ uint, _ string) error {
+	return nil
+}
+
 func TestUserService_ProcessUserLoggedIn_SendsEmail(t *testing.T) {
 	emailSvc := &mockEmailService{}
 	userRepo := &mockUserRepo{

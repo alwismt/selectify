@@ -9,7 +9,11 @@ import { API_PATHS } from "@/lib/api/config";
 import { clientFetch, apiClientGet } from "@/lib/api/client";
 import type { User } from "@/types/user";
 
-const Signin = () => {
+type SigninProps = {
+  resetSuccess?: boolean;
+};
+
+const Signin = ({ resetSuccess = false }: SigninProps) => {
   const { user, setUser } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -69,6 +73,12 @@ const Signin = () => {
 
             <div>
               <form onSubmit={handleSubmit}>
+                {resetSuccess && !error && (
+                  <p className="mb-5 text-green-700 text-sm" role="status">
+                    Password reset successfully. You can sign in with your new
+                    password.
+                  </p>
+                )}
                 {error && (
                   <p className="mb-5 text-red-600 text-sm" role="alert">
                     {error}
@@ -115,12 +125,12 @@ const Signin = () => {
                   {loading ? "Signing in…" : "Sign in to account"}
                 </button>
 
-                <a
-                  href="#"
+                <Link
+                  href="/forgot-password"
                   className="block text-center text-dark-4 mt-4.5 ease-out duration-200 hover:text-dark"
                 >
                   Forget your password?
-                </a>
+                </Link>
 
                 <span className="relative z-1 block font-medium text-center mt-4.5">
                   <span className="block absolute -z-1 left-0 top-1/2 h-px w-full bg-gray-3"></span>

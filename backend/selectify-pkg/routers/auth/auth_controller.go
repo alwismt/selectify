@@ -3,9 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 
@@ -38,7 +36,7 @@ func (c *controller) UserRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userAgent := r.UserAgent()
-	clientIP := c.getClientIP(r)
+	clientIP := httpx.ClientIP(r)
 
 	s, err := c.authService.RegisterUser(ctx, req, userAgent, clientIP)
 	if err != nil {
@@ -73,7 +71,7 @@ func (c *controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := c.authService.LoginUser(ctx, req, r.UserAgent(), c.getClientIP(r))
+	s, err := c.authService.LoginUser(ctx, req, r.UserAgent(), httpx.ClientIP(r))
 	if err != nil {
 		_ = logger.Errorf(ctx, err, "Failed to login")
 		if errors.Is(err, httpx.ErrUserNotFound) {
@@ -94,23 +92,6 @@ func (c *controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (c *controller) getClientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		parts := strings.Split(xff, ",")
-		return strings.TrimSpace(parts[0])
-	}
-
-	if xrip := r.Header.Get("X-Real-IP"); xrip != "" {
-		return strings.TrimSpace(xrip)
-	}
-
-	ip, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return r.RemoteAddr
-	}
-	return ip
-}
-
 func (c *controller) Logout(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
 	if err := c.authService.UserLogout(r.Context(), s.SessionId); err != nil {
 		httpx.SendError(w, fmt.Errorf("failed logout"))
@@ -120,4 +101,85 @@ func (c *controller) Logout(w http.ResponseWriter, r *http.Request, s *model.Use
 	httpx.DeleteSessionCookies(w)
 	httpx.SendStatus(w, http.StatusOK, "User logged out")
 	return
+}
+
+func (c *controller) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	req := new(request.ForgotPasswordRequest)
+
+	if err := httpx.MustDecodeJson(w, r, req); err != nil {
+		_ = logger.Errorf(ctx, err, "Failed to decode body")
+		return
+	}
+
+	if err := validator.New().Struct(req); err != nil {
+		_ = logger.Errorf(ctx, err, "Validation error")
+		fieldErrors := httpx.ValidationErrorsToMap(err)
+		_ = httpx.SendJson(w, http.StatusBadRequest, fieldErrors)
+		return
+	}
+
+	if err := c.authService.ForgetPassword(ctx, req.Email, httpx.ClientIP(r), r.UserAgent()); err != nil {
+		_ = logger.Errorf(ctx, err, "Failed to process forgot password")
+	}
+
+	httpx.SendStatus(w, http.StatusOK, "If an account exists with this email address, a password reset link has been sent.")
+}
+
+func (c *controller) ValidateResetPassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		httpx.SendError(w, service.ErrInvalidResetToken)
+		return
+	}
+
+	if err := c.authService.ValidateResetToken(ctx, token); err != nil {
+		_ = logger.Errorf(ctx, err, "Failed to validate reset password token")
+		if errors.Is(err, service.ErrInvalidResetToken) {
+			httpx.SendError(w, service.ErrInvalidResetToken)
+			return
+		}
+		httpx.SendStatus(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	httpx.SendStatus(w, http.StatusOK, "Token is valid")
+}
+
+func (c *controller) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	req := new(request.ResetPasswordRequest)
+
+	if err := httpx.MustDecodeJson(w, r, req); err != nil {
+		_ = logger.Errorf(ctx, err, "Failed to decode body")
+		return
+	}
+
+	if err := validator.New().Struct(req); err != nil {
+		_ = logger.Errorf(ctx, err, "Validation error")
+		fieldErrors := httpx.ValidationErrorsToMap(err)
+		_ = httpx.SendJson(w, http.StatusBadRequest, fieldErrors)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		_ = logger.Errorf(ctx, err, "Password validation error")
+		httpx.SendError(w, err)
+		return
+	}
+
+	if err := c.authService.ResetPassword(ctx, req.Token, req.Password, httpx.ClientIP(r), r.UserAgent()); err != nil {
+		_ = logger.Errorf(ctx, err, "Failed to reset password")
+		if errors.Is(err, service.ErrInvalidResetToken) {
+			httpx.SendError(w, service.ErrInvalidResetToken)
+			return
+		}
+		httpx.SendStatus(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	httpx.SendStatus(w, http.StatusOK, "Password has been reset successfully.")
 }

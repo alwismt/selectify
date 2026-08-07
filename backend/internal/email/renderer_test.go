@@ -10,6 +10,7 @@ import (
 func TestRender_LoginNotification(t *testing.T) {
 	html, err := Render(TemplateLoginNotification, struct {
 		FirstName   string
+		LastName    string
 		LoggedInAt  string
 		IP          string
 		UserAgent   string
@@ -19,6 +20,7 @@ func TestRender_LoginNotification(t *testing.T) {
 		Timezone    string
 	}{
 		FirstName:   "Ada",
+		LastName:    "Lovelace",
 		LoggedInAt:  "2026-08-06 19:00:00 UTC",
 		IP:          "203.0.113.10",
 		UserAgent:   "Mozilla/5.0",
@@ -29,13 +31,52 @@ func TestRender_LoginNotification(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Contains(t, html, "Selectify")
-	require.Contains(t, html, "Hi Ada,")
+	require.Contains(t, html, "Hi Ada Lovelace,")
 	require.Contains(t, html, "203.0.113.10")
 	require.Contains(t, html, "Mozilla/5.0")
 	require.Contains(t, html, "2026-08-06 19:00:00 UTC")
 	require.Contains(t, html, "United States")
 	require.Contains(t, html, "America/New_York")
 	require.True(t, strings.Contains(html, "<!DOCTYPE html>") || strings.Contains(html, "<html"))
+}
+
+func TestRender_PasswordReset(t *testing.T) {
+	html, err := Render(TemplatePasswordReset, struct {
+		FirstName   string
+		Location    string
+		IP          string
+		RequestedAt string
+		ResetURL    string
+	}{
+		FirstName:   "Ada",
+		Location:    "Kaunas, Lithuania",
+		IP:          "84.xxx.xxx.xxx",
+		RequestedAt: "August 7, 2026, 01:15",
+		ResetURL:    "http://localhost:3000/reset-password?token=abc",
+	})
+	require.NoError(t, err)
+	require.Contains(t, html, "We received a request to reset your password.")
+	require.Contains(t, html, "This link expires in 5 minutes.")
+	require.Contains(t, html, "Kaunas, Lithuania")
+	require.Contains(t, html, "84.xxx.xxx.xxx")
+	require.Contains(t, html, "reset-password?token=abc")
+}
+
+func TestRender_PasswordChanged(t *testing.T) {
+	html, err := Render(TemplatePasswordChanged, struct {
+		FirstName string
+		Location  string
+		IP        string
+		ChangedAt string
+	}{
+		FirstName: "Ada",
+		Location:  "Kaunas, Lithuania",
+		IP:        "84.xxx.xxx.xxx",
+		ChangedAt: "August 7, 2026, 01:15",
+	})
+	require.NoError(t, err)
+	require.Contains(t, html, "password was changed successfully")
+	require.Contains(t, html, "Kaunas, Lithuania")
 }
 
 func TestRender_MissingTemplate(t *testing.T) {
