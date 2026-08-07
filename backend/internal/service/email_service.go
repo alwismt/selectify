@@ -43,12 +43,14 @@ type smtpConfig struct {
 }
 
 type emailService struct {
-	cfg smtpConfig
+	cfg     smtpConfig
+	logoURL string
 }
 
 func NewEmailService() EmailService {
 	var wrapper struct {
-		SMTP smtpConfig `envconfig:"smtp"`
+		SMTP   smtpConfig `envconfig:"smtp"`
+		CDNURL string     `envconfig:"cdn_url" required:"true"`
 	}
 
 	prefix := program.AppPrefix
@@ -60,7 +62,11 @@ func NewEmailService() EmailService {
 		panic(logger.Error(context.Background(), err, "failed to process SMTP env vars"))
 	}
 
-	return &emailService{cfg: wrapper.SMTP}
+	base := strings.TrimRight(wrapper.CDNURL, "/")
+	return &emailService{
+		cfg:     wrapper.SMTP,
+		logoURL: base + "/logos/logo.svg",
+	}
 }
 
 func (s *emailService) SendTemplate(ctx context.Context, msg TemplateMessage) error {
@@ -68,7 +74,7 @@ func (s *emailService) SendTemplate(ctx context.Context, msg TemplateMessage) er
 		return fmt.Errorf("template is required")
 	}
 
-	htmlBody, err := email.Render(msg.Template, msg.Data)
+	htmlBody, err := email.Render(msg.Template, msg.Data, s.logoURL)
 	if err != nil {
 		return logger.Error(ctx, err, "failed to render email template")
 	}

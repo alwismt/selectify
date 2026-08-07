@@ -256,7 +256,7 @@ func TestUserService_ProcessUserLoggedIn_SendsEmail(t *testing.T) {
 	require.Equal(t, "203.0.113.10", data.IP)
 	require.Equal(t, "Mozilla/5.0", data.UserAgent)
 	require.NotEmpty(t, data.LoggedInAt)
-	require.Empty(t, data.Country)
+	require.Equal(t, "Location unknown", data.Location)
 }
 
 type mockGeoIPService struct {
@@ -305,10 +305,7 @@ func TestUserService_ProcessUserLoggedIn_IncludesLocation(t *testing.T) {
 
 	data, ok := emailSvc.gotMsg.Data.(loginNotificationData)
 	require.True(t, ok)
-	require.Equal(t, "United States", data.Country)
-	require.Equal(t, "Mountain View", data.City)
-	require.Equal(t, "California", data.Subdivision)
-	require.Equal(t, "America/Los_Angeles", data.Timezone)
+	require.Equal(t, "Mountain View, United States", data.Location)
 }
 
 func TestUserService_ProcessUserLoggedIn_PropagatesSendError(t *testing.T) {
