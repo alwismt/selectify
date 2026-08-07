@@ -2,10 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"time"
 
@@ -13,15 +9,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"alwis.dev/selectify/internal/httpx"
-
 	"alwis.dev/selectify/internal/httpx/request"
 	"alwis.dev/selectify/internal/logger"
 	"alwis.dev/selectify/internal/model"
 	"alwis.dev/selectify/internal/repo"
+	"alwis.dev/selectify/internal/security"
 	"alwis.dev/selectify/internal/types"
 )
 
-const passwordResetTTL = 5 * time.Minute
+const (
+	passwordResetTTL   = 5 * time.Minute
+	SessionIdleTTL     = 6 * time.Hour
+	sessionAbsoluteTTL = 7 * 24 * time.Hour
+	RememberMeTTL      = 30 * 24 * time.Hour
+	ActivityThrottle   = time.Hour
+)
 
 var (
 	ErrUserDeactivated   = errors.New("user is deactivated")
@@ -29,8 +31,8 @@ var (
 )
 
 type AuthService interface {
-	RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip string) (*model.UserSession, error)
-	LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip string) (*model.UserSession, error)
+	RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip, deviceToken string) (*model.UserSession, error)
+	LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip, deviceToken string) (*model.UserSession, error)
 	UserLogout(ctx context.Context, sesId uuid.UUID) (err error)
 	ForgetPassword(ctx context.Context, email, ip, userAgent string) error
 	ValidateResetToken(ctx context.Context, token string) error
@@ -38,31 +40,37 @@ type AuthService interface {
 }
 
 type authService struct {
-	jwtService     JWTService
 	eventPublisher EventPublisher
 
 	txRepo            repo.TransactionRepo
 	userRepo          repo.UserRepo
 	userRoleRepo      repo.UserRoleRepo
 	sessionRepo       repo.UserSessionRepo
+	deviceRepo        repo.UserDeviceRepo
 	passwordResetRepo repo.PasswordResetRepo
 }
 
-func NewAuthService(jwtService JWTService, eventPublisher EventPublisher, userRepo repo.UserRepo, txRepo repo.TransactionRepo,
-	userRole repo.UserRoleRepo, sessionRepo repo.UserSessionRepo, passwordResetRepo repo.PasswordResetRepo) AuthService {
+func NewAuthService(
+	eventPublisher EventPublisher,
+	userRepo repo.UserRepo,
+	txRepo repo.TransactionRepo,
+	userRole repo.UserRoleRepo,
+	sessionRepo repo.UserSessionRepo,
+	deviceRepo repo.UserDeviceRepo,
+	passwordResetRepo repo.PasswordResetRepo,
+) AuthService {
 	return &authService{
-		jwtService:     jwtService,
-		eventPublisher: eventPublisher,
-
+		eventPublisher:    eventPublisher,
 		txRepo:            txRepo,
 		userRepo:          userRepo,
 		userRoleRepo:      userRole,
 		sessionRepo:       sessionRepo,
+		deviceRepo:        deviceRepo,
 		passwordResetRepo: passwordResetRepo,
 	}
 }
 
-func (svc *authService) RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip string) (*model.UserSession, error) {
+func (svc *authService) RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip, deviceToken string) (*model.UserSession, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, logger.Error(ctx, err, "Error while hashing password")
@@ -104,10 +112,10 @@ func (svc *authService) RegisterUser(ctx context.Context, req *request.UserRegis
 	tx.CanCommit = true
 	tx.End()
 
-	return svc.newUserSession(ctx, user.ID, userAgent, ip)
+	return svc.newUserSession(ctx, user.ID, userAgent, ip, deviceToken, false)
 }
 
-func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip string) (*model.UserSession, error) {
+func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip, deviceToken string) (*model.UserSession, error) {
 	user, err := svc.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, logger.Errorf(ctx, err, "Error while fetching user by email %s", req.Email)
@@ -123,7 +131,7 @@ func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest
 		return nil, ErrUserDeactivated
 	}
 
-	session, err := svc.newUserSession(ctx, user.ID, userAgent, ip)
+	session, err := svc.newUserSession(ctx, user.ID, userAgent, ip, deviceToken, req.RememberMe)
 	if err != nil {
 		return nil, err
 	}
@@ -133,6 +141,7 @@ func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest
 		"session_id": session.SessionId.String(),
 		"ip":         ip,
 		"user_agent": userAgent,
+		"remember":   req.RememberMe,
 	}); pubErr != nil {
 		_ = logger.Error(ctx, pubErr, "failed to publish user.logged_in event")
 	}
@@ -140,22 +149,80 @@ func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest
 	return session, nil
 }
 
-func (svc *authService) newUserSession(ctx context.Context, userId uint, userAgent, ip string) (*model.UserSession, error) {
+func (svc *authService) newUserSession(ctx context.Context, userId uint, userAgent, ip, deviceToken string, rememberMe bool) (*model.UserSession, error) {
 	now := time.Now().UTC()
-	session := &model.UserSession{
-		UserId:    userId,
-		UserAgent: userAgent,
-		IpAddress: ip,
-		SessionId: uuid.New(),
-		IssuedAt:  now,
-		ExpiresAt: now.Add(20 * time.Minute),
+
+	rawSession, sessionHash, err := security.NewToken()
+	if err != nil {
+		return nil, logger.Error(ctx, err, "Error while generating session token")
 	}
 
-	if err := svc.sessionRepo.InsertUserSession(ctx, session); err != nil {
+	device, err := svc.resolveDevice(ctx, userId, userAgent, ip, deviceToken, now)
+	if err != nil {
+		return nil, err
+	}
+
+	idleTTL := SessionIdleTTL
+	absoluteTTL := sessionAbsoluteTTL
+	if rememberMe {
+		idleTTL = RememberMeTTL
+		absoluteTTL = RememberMeTTL
+	}
+
+	session := &model.UserSession{
+		UserId:            userId,
+		UserAgent:         userAgent,
+		IpAddress:         ip,
+		SessionId:         uuid.New(),
+		SessionTokenHash:  sessionHash,
+		IssuedAt:          now,
+		LastActivityAt:    now,
+		ExpiresAt:         now.Add(idleTTL),
+		AbsoluteExpiresAt: now.Add(absoluteTTL),
+		RememberMe:        rememberMe,
+		DeviceId:          &device.DeviceId,
+		RawSessionToken:   rawSession,
+		RawDeviceToken:    device.RawDeviceToken,
+	}
+
+	if err = svc.sessionRepo.InsertUserSession(ctx, session); err != nil {
 		return nil, logger.Error(ctx, err, "Error while inserting user session")
 	}
 
 	return session, nil
+}
+
+func (svc *authService) resolveDevice(ctx context.Context, userId uint, userAgent, ip, deviceToken string, now time.Time) (*model.UserDevice, error) {
+	if deviceToken != "" {
+		existing, err := svc.deviceRepo.GetByTokenHash(ctx, security.HashToken(deviceToken))
+		if err != nil {
+			return nil, logger.Error(ctx, err, "Error while looking up user device")
+		}
+		if existing != nil && existing.UserId == userId {
+			_ = svc.deviceRepo.TouchIfStale(ctx, existing.DeviceId, userAgent, ip, ActivityThrottle)
+			return existing, nil
+		}
+	}
+
+	rawDevice, deviceHash, err := security.NewToken()
+	if err != nil {
+		return nil, logger.Error(ctx, err, "Error while generating device token")
+	}
+
+	device := &model.UserDevice{
+		DeviceId:        uuid.New(),
+		UserId:          userId,
+		DeviceTokenHash: deviceHash,
+		UserAgent:       userAgent,
+		LastIP:          ip,
+		FirstSeenAt:     now,
+		LastSeenAt:      now,
+		RawDeviceToken:  rawDevice,
+	}
+	if err = svc.deviceRepo.Insert(ctx, device); err != nil {
+		return nil, logger.Error(ctx, err, "Error while inserting user device")
+	}
+	return device, nil
 }
 
 func (svc *authService) UserLogout(ctx context.Context, sesId uuid.UUID) (err error) {
@@ -181,7 +248,7 @@ func (svc *authService) ForgetPassword(ctx context.Context, email, ip, userAgent
 		return nil
 	}
 
-	rawToken, tokenHash, err := generatePasswordResetToken()
+	rawToken, tokenHash, err := security.NewToken()
 	if err != nil {
 		return logger.Error(ctx, err, "Error while generating password reset token")
 	}
@@ -228,7 +295,7 @@ func (svc *authService) ValidateResetToken(ctx context.Context, token string) er
 	if token == "" {
 		return ErrInvalidResetToken
 	}
-	tokenHash := hashPasswordResetToken(token)
+	tokenHash := security.HashToken(token)
 	reset, err := svc.passwordResetRepo.GetValidByTokenHash(ctx, tokenHash)
 	if err != nil {
 		return logger.Error(ctx, err, "Error while validating password reset token")
@@ -240,7 +307,7 @@ func (svc *authService) ValidateResetToken(ctx context.Context, token string) er
 }
 
 func (svc *authService) ResetPassword(ctx context.Context, token, newPassword, ip, userAgent string) error {
-	tokenHash := hashPasswordResetToken(token)
+	tokenHash := security.HashToken(token)
 	reset, err := svc.passwordResetRepo.GetValidByTokenHash(ctx, tokenHash)
 	if err != nil {
 		return logger.Error(ctx, err, "Error while fetching password reset")
@@ -272,19 +339,4 @@ func (svc *authService) ResetPassword(ctx context.Context, token, newPassword, i
 	}
 
 	return nil
-}
-
-func generatePasswordResetToken() (rawToken, tokenHash string, err error) {
-	buf := make([]byte, 32)
-	if _, err = rand.Read(buf); err != nil {
-		return "", "", err
-	}
-	rawToken = base64.RawURLEncoding.EncodeToString(buf)
-	tokenHash = hashPasswordResetToken(rawToken)
-	return rawToken, tokenHash, nil
-}
-
-func hashPasswordResetToken(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])
 }

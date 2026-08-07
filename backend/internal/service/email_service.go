@@ -10,7 +10,6 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 
-	"alwis.dev/selectify/internal/email"
 	"alwis.dev/selectify/internal/logger"
 	"alwis.dev/selectify/internal/program"
 )
@@ -74,16 +73,19 @@ func (s *emailService) SendTemplate(ctx context.Context, msg TemplateMessage) er
 		return fmt.Errorf("template is required")
 	}
 
-	htmlBody, err := email.Render(msg.Template, msg.Data, s.logoURL)
-	if err != nil {
-		return logger.Error(ctx, err, "failed to render email template")
-	}
+	// Todo:: Uncomment this when ready to send emails
+	//htmlBody, err := email.Render(msg.Template, msg.Data, s.logoURL)
+	//if err != nil {
+	//	return logger.Error(ctx, err, "failed to render email template")
+	//}
 
-	return s.Send(ctx, EmailMessage{
-		To:       msg.To,
-		Subject:  msg.Subject,
-		HTMLBody: htmlBody,
-	})
+	//return s.Send(ctx, EmailMessage{
+	//	To:       msg.To,
+	//	Subject:  msg.Subject,
+	//	HTMLBody: htmlBody,
+	//})
+
+	return nil
 }
 
 func (s *emailService) Send(ctx context.Context, msg EmailMessage) error {

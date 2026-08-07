@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
 import type { User } from "@/types/user";
 import type { UserFile } from "@/types/api/userFile";
+import { SESSION_EXPIRED_EVENT } from "@/lib/api/session";
 
 interface UserContextType {
   user: User | null;
@@ -34,6 +35,16 @@ export function UserProvider({
 }: UserProviderProps) {
   const [user, setUser] = useState<User | null>(initialUser);
   const [userFile, setUserFile] = useState<UserFile | null>(initialUserFile);
+
+  useEffect(() => {
+    const onExpired = () => {
+      setUser(null);
+      setUserFile(null);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, []);
+
   const value = useMemo(
     () => ({ user, setUser, userFile, setUserFile }),
     [user, userFile]

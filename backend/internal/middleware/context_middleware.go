@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"alwis.dev/selectify/internal/model"
 	"alwis.dev/selectify/internal/repo"
+	"alwis.dev/selectify/internal/security"
 )
 
 type requestContextKey uint
@@ -19,48 +19,19 @@ type sessionContext struct {
 	Valid bool
 }
 
-//func Session(context context.Context) http.Handler {
-//	if sCtx, ok := context.Value(sessionKey).(*sessionContext); ok {
-//		fmt.Println()
-//		fmt.Println()
-//		fmt.Println()
-//		fmt.Println("here is the error")
-//		return sCtx.UserSession
-//	} else {
-//		return nil
-//	}
-//}
-
+// ContextMiddleware is unused by the main router; session auth uses UserSessionHandler.
+// Kept for optional future context attachment.
 func ContextMiddleware(sessionRepo repo.UserSessionRepo) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
 			c, err := r.Cookie("slf")
-			if err == nil {
-				session, _ := sessionRepo.GetBySessionId(ctx, c.Value)
-				if session != nil && !session.IsExpired() {
-
-					fmt.Println()
-					fmt.Println()
-					fmt.Println(session.UserId)
-					fmt.Println(session.IpAddress)
-					//ctx = appctx.WithSession(ctx, session)
-
-					//user, _ := userRepo.FindByID(ctx, session.UserID)
-					//if user != nil {
-					//	ctx = appctx.WithUser(ctx, user)
-					//
-					//	admin, _ := adminRepo.FindByUser(ctx, user)
-					//	if admin != nil {
-					//		ctx = appctx.WithAdmin(ctx, admin)
-					//	}
-					//}
-				}
+			if err == nil && c.Value != "" {
+				_, _ = sessionRepo.GetByTokenHash(ctx, security.HashToken(c.Value))
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-
 }

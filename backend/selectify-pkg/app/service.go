@@ -6,7 +6,6 @@ type SVC struct {
 	AuthService            service.AuthService
 	CartService            service.CartService
 	EventPublisher         service.EventPublisher
-	JWTService             service.JWTService
 	OrderService           service.OrderService
 	ProductService         service.ProductService
 	ProductVariantsService service.ProductVariantsService
@@ -16,10 +15,9 @@ type SVC struct {
 
 func NewService() *SVC {
 	svc := new(SVC)
-	svc.JWTService = service.NewJWTService()
 	svc.EventPublisher = service.NewSQSEventPublisher(appEnv.repo.EventRepo)
-	svc.AuthService = service.NewAuthService(svc.JWTService, svc.EventPublisher, appEnv.repo.UserRepo, appEnv.repo.TxRepo,
-		appEnv.repo.UserRoleRepo, appEnv.repo.UserSessionRepo, appEnv.repo.PasswordResetRepo)
+	svc.AuthService = service.NewAuthService(svc.EventPublisher, appEnv.repo.UserRepo, appEnv.repo.TxRepo,
+		appEnv.repo.UserRoleRepo, appEnv.repo.UserSessionRepo, appEnv.repo.UserDeviceRepo, appEnv.repo.PasswordResetRepo)
 	svc.ProductService = service.NewProductService(appEnv.repo.ProductRepo, appEnv.repo.ProductFileRepo)
 	svc.ProductVariantsService = service.NewProductVariantsService(appEnv.repo.ProductVariantsRepo, appEnv.repo.ProductFileRepo)
 	svc.CartService = service.NewCartService(appEnv.repo.CartRepo, appEnv.repo.ProductRepo, appEnv.repo.ProductVariantsRepo)

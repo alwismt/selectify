@@ -37,8 +37,9 @@ func (c *controller) UserRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	userAgent := r.UserAgent()
 	clientIP := httpx.ClientIP(r)
+	deviceToken := deviceTokenFromRequest(r)
 
-	s, err := c.authService.RegisterUser(ctx, req, userAgent, clientIP)
+	s, err := c.authService.RegisterUser(ctx, req, userAgent, clientIP, deviceToken)
 	if err != nil {
 		_ = logger.Errorf(ctx, err, "Failed to register user")
 
@@ -47,12 +48,12 @@ func (c *controller) UserRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		httpx.SendError(w, httpx.ErrInvalidRequest)
+		return
 	}
 
 	httpx.SetSessionCookies(s, w)
 
 	httpx.SendStatus(w, http.StatusCreated, "User logged in")
-	return
 }
 
 func (c *controller) UserLogin(w http.ResponseWriter, r *http.Request) {
@@ -71,14 +72,14 @@ func (c *controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := c.authService.LoginUser(ctx, req, r.UserAgent(), httpx.ClientIP(r))
+	s, err := c.authService.LoginUser(ctx, req, r.UserAgent(), httpx.ClientIP(r), deviceTokenFromRequest(r))
 	if err != nil {
 		_ = logger.Errorf(ctx, err, "Failed to login")
 		if errors.Is(err, httpx.ErrUserNotFound) {
 			httpx.SendError(w, httpx.ErrUserNotFound)
 			return
 		}
-		if errors.Is(err, httpx.ErrInternalServer) {
+		if errors.Is(err, service.ErrUserDeactivated) {
 			httpx.SendError(w, service.ErrUserDeactivated)
 			return
 		}
@@ -89,7 +90,14 @@ func (c *controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 	httpx.SetSessionCookies(s, w)
 
 	httpx.SendStatus(w, http.StatusCreated, "User logged in")
-	return
+}
+
+func deviceTokenFromRequest(r *http.Request) string {
+	c, err := r.Cookie(httpx.DeviceCookie)
+	if err != nil || c == nil {
+		return ""
+	}
+	return c.Value
 }
 
 func (c *controller) Logout(w http.ResponseWriter, r *http.Request, s *model.UserSession) {

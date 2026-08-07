@@ -11,14 +11,14 @@ import Newsletter from "../Common/Newsletter";
 const Home = () => {
   return (
     <main>
-      <Hero />
+      {/*<Hero />*/}
       <Categories />
       <NewArrival />
       <PromoBanner />
       <BestSeller />
-      <CounDown />
-      <Testimonials />
-      <Newsletter />
+      {/*<CounDown />*/}
+      {/*<Testimonials />*/}
+      {/*<Newsletter />*/}
     </main>
   );
 };
