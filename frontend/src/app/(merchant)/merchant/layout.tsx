@@ -1,12 +1,23 @@
-export default function MerchantLayout({
+import { getServerUser } from "@/lib/api/getServerUser";
+import { getServerUserFile } from "@/lib/api/getServerUserFile";
+import ClientMerchantLayout from "./ClientMerchantLayout";
+
+export default async function MerchantLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [initialUser, initialUserFile] = await Promise.all([
+    getServerUser(),
+    getServerUserFile(),
+  ]);
+
   return (
-    <div className="merchant-layout">
-      {/* Future: Merchant header/sidebar */}
-      <main>{children}</main>
-    </div>
+    <ClientMerchantLayout
+      initialUser={initialUser}
+      initialUserFile={initialUser ? initialUserFile : null}
+    >
+      {children}
+    </ClientMerchantLayout>
   );
 }

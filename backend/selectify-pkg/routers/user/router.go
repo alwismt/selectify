@@ -17,7 +17,7 @@ func Register(r chi.Router) {
 
 	r.Group(func(r chi.Router) {
 		r.Route("/user", func(r chi.Router) {
-			r.MethodFunc(http.MethodGet, "/info", handlers.UserSessionHandlerFunc(UserInfo))
+			r.Get("/info", handlers.UserSessionHandlerFunc(c.UserInfo))
 
 			r.Get("/me", handlers.UserSessionHandlerFunc(c.GetUserImage))
 			r.Post("/me", handlers.UserSessionHandlerFunc(c.UpdateUserImage))

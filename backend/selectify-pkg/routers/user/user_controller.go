@@ -15,7 +15,8 @@ import (
 
 const maxProfileImageSize = 5 << 20
 
-func UserInfo(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) UserInfo(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+	s.User.UserRole = s.UserRole
 	if err := httpx.SendJson(w, http.StatusOK, s.User); err != nil {
 		_ = logger.Error(r.Context(), err, "failed to send user info response")
 	}

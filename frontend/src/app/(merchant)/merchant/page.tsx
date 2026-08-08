@@ -1,3 +1,4 @@
+import MerchantDashboard from "@/components/MerchantDashboard";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -5,11 +6,10 @@ export const metadata: Metadata = {
   description: "Manage your products, orders, and inventory",
 };
 
-export default function MerchantDashboard() {
+export default function MerchantDashboardPage() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-4">Merchant Dashboard</h1>
-      <p>Coming soon: Manage your store</p>
-    </div>
+    <main>
+      <MerchantDashboard />
+    </main>
   );
 }
