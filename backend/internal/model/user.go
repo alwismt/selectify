@@ -19,4 +19,5 @@ type User struct {
 	CreatedAt       *time.Time       `db:"created_at" json:"created_at"`
 	UpdatedAt       *time.Time       `db:"updated_at" json:"-"`
 	DeletedAt       *time.Time       `db:"deleted_at" json:"deleted_at,omitempty"`
+	UserRole        *UserRole        `json:"user_role,omitempty"`
 }

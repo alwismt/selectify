@@ -24,6 +24,7 @@ type UserService interface {
 	GetUserImage(ctx context.Context, user *model.User) (*model.UserFile, error)
 	UpsertUserImage(ctx context.Context, user *model.User, file io.Reader, contentType string) (*model.UserFile, error)
 	DeleteUserImage(ctx context.Context, user *model.User) error
+
 	ProcessUserLoggedIn(ctx context.Context, event *model.Event) error
 	ProcessPasswordResetRequested(ctx context.Context, event *model.Event) error
 	ProcessPasswordChanged(ctx context.Context, event *model.Event) error

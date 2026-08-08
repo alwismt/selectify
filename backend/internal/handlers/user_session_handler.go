@@ -46,6 +46,7 @@ func (h sessionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sessionRepo := app.Repository().UserSessionRepo
 	deviceRepo := app.Repository().UserDeviceRepo
 	userRepo := app.Repository().UserRepo
+	userRoleRepo := app.Repository().UserRoleRepo
 
 	ctx := r.Context()
 
@@ -80,8 +81,20 @@ func (h sessionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.User, err = userRepo.GetUserById(ctx, s.UserId)
-	if err != nil {
+	if err != nil || s.User == nil {
 		logger.Warn(ctx, "user not found")
+		httpx.SendUnAuthorized(w)
+		return
+	}
+
+	s.UserRole, err = userRoleRepo.GetUserRoleByUserID(ctx, s.UserId)
+	if err != nil || s.UserRole == nil {
+		logger.Warn(ctx, "user role not found")
+		httpx.SendUnAuthorized(w)
+		return
+	}
+	if !s.UserRole.Role.Valid() {
+		logger.Warn(ctx, "user role not valid")
 		httpx.SendUnAuthorized(w)
 		return
 	}

@@ -19,17 +19,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const userId = user?.id;
   const [cart, setCart] = useState<CartResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!userId);
   const [error, setError] = useState<Error | null>(null);
   const [prevUserId, setPrevUserId] = useState(userId);
 
   if (userId !== prevUserId) {
     setPrevUserId(userId);
-    setLoading(true);
+    setLoading(!!userId);
     setError(null);
   }
 
   const refetch = useCallback(async () => {
+    if (!userId) {
+      setCart(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -41,9 +48,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
+    if (!userId) {
+      setCart(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     let cancelled = false;
     apiClientGet<CartResponse>(API_PATHS.cart)
       .then((data) => {

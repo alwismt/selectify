@@ -20,6 +20,7 @@ type UserSession struct {
 	DeviceId          *uuid.UUID `db:"device_id" json:"-"`
 	RevokedAt         *time.Time `db:"revoked_at" json:"-"`
 	User              *User      `db:"-" json:"-"`
+	UserRole          *UserRole  `db:"-" json:"-"`
 
 	// RawSessionToken is the bearer secret for the cookie; never persisted.
 	RawSessionToken string `db:"-" json:"-"`
