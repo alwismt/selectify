@@ -31,6 +31,7 @@ var (
 	userFileRepo        repo.UserFileRepo
 	userRoleRepo        repo.UserRoleRepo
 	userSessionRepo     repo.UserSessionRepo
+	userDeviceRepo      repo.UserDeviceRepo
 )
 
 func TestMain(m *testing.M) {
@@ -57,4 +58,5 @@ func setupRepo() {
 	userFileRepo = repo.NewUserFileRepo(ts.DB)
 	userRoleRepo = repo.NewUserRoleRepo(ts.DB)
 	userSessionRepo = repo.NewUserSessionRepo(ts.DB)
+	userDeviceRepo = repo.NewUserDeviceRepo(ts.DB)
 }

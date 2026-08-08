@@ -11,13 +11,15 @@ import type { User } from "@/types/user";
 
 type SigninProps = {
   resetSuccess?: boolean;
+  sessionExpired?: boolean;
 };
 
-const Signin = ({ resetSuccess = false }: SigninProps) => {
+const Signin = ({ resetSuccess = false, sessionExpired = false }: SigninProps) => {
   const { user, setUser } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   if (user) {
     return null;
@@ -39,7 +41,11 @@ const Signin = ({ resetSuccess = false }: SigninProps) => {
       const res = await clientFetch(API_PATHS.authLogin, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          remember_me: rememberMe,
+        }),
       });
       const data = (await res.json()) as { status?: string; message?: string };
       if (res.ok && data.status === "ok") {
@@ -73,6 +79,11 @@ const Signin = ({ resetSuccess = false }: SigninProps) => {
 
             <div>
               <form onSubmit={handleSubmit}>
+                {sessionExpired && !error && !resetSuccess && (
+                  <p className="mb-5 text-amber-700 text-sm" role="status">
+                    Your session expired. Please sign in again.
+                  </p>
+                )}
                 {resetSuccess && !error && (
                   <p className="mb-5 text-green-700 text-sm" role="status">
                     Password reset successfully. You can sign in with your new
@@ -115,6 +126,21 @@ const Signin = ({ resetSuccess = false }: SigninProps) => {
                     disabled={loading}
                     className="rounded-lg border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
                   />
+                </div>
+
+                <div className="mb-5 flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="remember_me"
+                    name="remember_me"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={loading}
+                    className="h-4 w-4 rounded border-gray-3 text-blue focus:ring-blue/20"
+                  />
+                  <label htmlFor="remember_me" className="text-dark-4 text-sm">
+                    Keep me signed in for 30 days
+                  </label>
                 </div>
 
                 <button

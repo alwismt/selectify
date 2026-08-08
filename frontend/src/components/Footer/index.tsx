@@ -338,7 +338,7 @@ const Footer = () => {
         <div className="max-w-[1170px] mx-auto px-4 sm:px-8 xl:px-0">
           <div className="flex gap-5 flex-wrap items-center justify-between">
             <p className="text-dark font-medium">
-              &copy; {year}. All rights reserved by PimjoLabs.
+              &copy; {year}. All rights reserved by Selectify.
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
@@ -353,14 +353,14 @@ const Footer = () => {
                     height={22}
                   />
                 </a>
-                <a href="#" aria-label="payment system with paypal">
-                  <img
-                    src="/images/payment/payment-02.svg"
-                    alt="paypal"
-                    width={18}
-                    height={21}
-                  />
-                </a>
+                {/*<a href="#" aria-label="payment system with paypal">*/}
+                {/*  <img*/}
+                {/*    src="/images/payment/payment-02.svg"*/}
+                {/*    alt="paypal"*/}
+                {/*    width={18}*/}
+                {/*    height={21}*/}
+                {/*  />*/}
+                {/*</a>*/}
                 <a href="#" aria-label="payment system with master card">
                   <img
                     src="/images/payment/payment-03.svg"

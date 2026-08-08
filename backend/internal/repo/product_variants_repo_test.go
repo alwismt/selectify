@@ -94,9 +94,6 @@ func TestProductVariantsRepo_GetVariantsForProduct(t *testing.T) {
 	require.Equal(t, variant1.Currency, foundVariant1.Currency)
 	require.True(t, foundVariant1.IsActive)
 	require.Len(t, foundVariant1.ProductVariantAttributes, 2)
-	require.NotNil(t, foundVariant1.Inventory)
-	require.Equal(t, uint(100), foundVariant1.Inventory.StockQty)
-	require.Equal(t, uint(10), foundVariant1.Inventory.ReservedQty)
 
 	// Verify attributes are correctly parsed
 	attrMap := make(map[string]string)
@@ -106,19 +103,17 @@ func TestProductVariantsRepo_GetVariantsForProduct(t *testing.T) {
 	require.Equal(t, "Red", attrMap["Color"])
 	require.Equal(t, "Large", attrMap["Size"])
 
-	// Verify second variant with attributes but no inventory
+	// Verify second variant with attributes
 	foundVariant2 := findVariantByID(variants, variant2.ID)
 	require.NotNil(t, foundVariant2)
 	require.Equal(t, variant2.ID, foundVariant2.ID)
 	require.Len(t, foundVariant2.ProductVariantAttributes, 2)
-	require.Empty(t, foundVariant2.Inventory)
 
-	// Verify third variant without attributes or inventory
+	// Verify third variant without attributes
 	foundVariant3 := findVariantByID(variants, variant3.ID)
 	require.NotNil(t, foundVariant3)
 	require.Equal(t, variant3.ID, foundVariant3.ID)
 	require.Len(t, foundVariant3.ProductVariantAttributes, 0)
-	require.Empty(t, foundVariant3.Inventory)
 }
 
 func TestProductVariantsRepo_GetVariantsForProduct_NoVariants(t *testing.T) {

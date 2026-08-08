@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 type SigninPageProps = {
-  searchParams: Promise<{ reset?: string }>;
+  searchParams: Promise<{ reset?: string; reason?: string }>;
 };
 
 export default async function SigninPage({ searchParams }: SigninPageProps) {
@@ -31,7 +31,10 @@ export default async function SigninPage({ searchParams }: SigninPageProps) {
   const params = await searchParams;
   return (
     <main>
-      <Signin resetSuccess={params.reset === "1"} />
+      <Signin
+        resetSuccess={params.reset === "1"}
+        sessionExpired={params.reason === "session-expired"}
+      />
     </main>
   );
 }

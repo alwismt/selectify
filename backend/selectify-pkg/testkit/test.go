@@ -4,7 +4,6 @@ package testkit
 
 import (
 	"net/http/httptest"
-	"os"
 
 	"alwis.dev/selectify/internal/testkit"
 	"alwis.dev/selectify/selectify-pkg/app"
@@ -26,9 +25,12 @@ type TestSetup struct {
 }
 
 func (t TestSetup) Close() {
-	_ = t.DB.Close()
-	t.S.Close()
-	os.Exit(0)
+	if t.DB != nil {
+		_ = t.DB.Close()
+	}
+	if t.S != nil {
+		t.S.Close()
+	}
 }
 
 func CreateServer() *httptest.Server {

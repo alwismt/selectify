@@ -54,14 +54,21 @@ export function getProductFilesBaseUrl(): string {
   );
 }
 
+/** Public CDN URL for any path under the product-files base. */
+export function filesUrl(path: string): string {
+  const base = getProductFilesBaseUrl();
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  if (!base) return normalized;
+  return `${base}${normalized}`;
+}
+
 /**
  * Public image URL for a product file id.
  * Shape: `{base}/products/{fileId}` (no extension).
  */
 export function productFileUrl(fileId: string | null | undefined): string {
-  const base = getProductFilesBaseUrl();
-  if (!base || !fileId) return "";
-  return `${base}/products/${fileId}`;
+  if (!fileId || !getProductFilesBaseUrl()) return "";
+  return filesUrl(`/products/${fileId}`);
 }
 
 /**
@@ -69,7 +76,6 @@ export function productFileUrl(fileId: string | null | undefined): string {
  * Shape: `{base}/users/{fileId}` (no extension).
  */
 export function userFileUrl(fileId: string | null | undefined): string {
-  const base = getProductFilesBaseUrl();
-  if (!base || !fileId) return "";
-  return `${base}/users/${fileId}`;
+  if (!fileId || !getProductFilesBaseUrl()) return "";
+  return filesUrl(`/users/${fileId}`);
 }

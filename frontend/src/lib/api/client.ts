@@ -2,13 +2,21 @@ import { apiUrl, orderAddress } from "./config";
 import type { Order, OrderAddress, OrderShippingAddressInput } from "@/types/api/order";
 import type { UserAddress } from "@/types/api/userAddress";
 import { isUserFile, type UserFile } from "@/types/api/userFile";
+import { handleSessionExpired, isAuthExemptPath } from "./session";
 
 export type ClientRequestInit = Omit<RequestInit, "method">;
+
+function maybeHandleUnauthorized(path: string, status: number): void {
+  if (status === 401 && !isAuthExemptPath(path)) {
+    handleSessionExpired();
+  }
+}
 
 /** Same-origin GET /api/orders (proxy). Hides backend URL. */
 export async function clientOrdersGet(): Promise<Order[]> {
   const res = await fetch("/api/orders", { method: "GET", credentials: "include" });
   if (!res.ok) {
+    maybeHandleUnauthorized("/orders", res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
   const data = await res.json();
@@ -24,6 +32,7 @@ export async function clientOrdersPost(body?: unknown): Promise<Order> {
     body: JSON.stringify(body ?? {}),
   });
   if (!res.ok) {
+    maybeHandleUnauthorized("/orders", res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
   return res.json() as Promise<Order>;
@@ -41,6 +50,7 @@ export async function clientOrderAddressPut(
     body: JSON.stringify(body),
   });
   if (!res.ok) {
+    maybeHandleUnauthorized(`/orders/${orderId}/address`, res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
   return res.json() as Promise<OrderAddress>;
@@ -53,6 +63,7 @@ export async function clientUserDefaultAddressGet(): Promise<UserAddress | null>
     credentials: "include",
   });
   if (!res.ok) {
+    maybeHandleUnauthorized("/user/addresses/default", res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
   const data = await res.json();
@@ -69,6 +80,7 @@ export async function clientUserFileGet(): Promise<UserFile | null> {
     credentials: "include",
   });
   if (!res.ok) {
+    maybeHandleUnauthorized("/user/me", res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
   const data: unknown = await res.json();
@@ -86,6 +98,7 @@ export async function clientUserFileUpload(file: File): Promise<UserFile> {
     body: formData,
   });
   if (!res.ok) {
+    maybeHandleUnauthorized("/user/me", res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
   const data: unknown = await res.json();
@@ -102,13 +115,18 @@ export async function clientUserFileDelete(): Promise<void> {
     credentials: "include",
   });
   if (!res.ok) {
+    maybeHandleUnauthorized("/user/me", res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
 }
 
-function clientFetch(path: string, init?: RequestInit): Promise<Response> {
+async function clientFetch(path: string, init?: RequestInit): Promise<Response> {
   const url = apiUrl(path);
-  return fetch(url, { ...init, credentials: "include" });
+  const res = await fetch(url, { ...init, credentials: "include" });
+  if (res.status === 401) {
+    maybeHandleUnauthorized(path, res.status);
+  }
+  return res;
 }
 
 /**

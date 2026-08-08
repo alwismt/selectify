@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -38,6 +39,7 @@ func TestController_UserRegister(t *testing.T) {
 			err := ts.DB.RwDb.Get(&userID, "SELECT id FROM users WHERE email = $1", email)
 			if err == nil {
 				_, _ = ts.DB.RwDb.Exec("DELETE FROM user_session WHERE user_id = $1", userID)
+				_, _ = ts.DB.RwDb.Exec("DELETE FROM user_device WHERE user_id = $1", userID)
 				_, _ = ts.DB.RwDb.Exec("DELETE FROM user_role WHERE user_id = $1", userID)
 				_, _ = ts.DB.RwDb.Exec("DELETE FROM users WHERE id = $1", userID)
 			}
@@ -63,6 +65,7 @@ func TestController_UserRegister(t *testing.T) {
 			err := ts.DB.RwDb.Get(&userID, "SELECT id FROM users WHERE email = $1", email)
 			if err == nil {
 				_, _ = ts.DB.RwDb.Exec("DELETE FROM user_session WHERE user_id = $1", userID)
+				_, _ = ts.DB.RwDb.Exec("DELETE FROM user_device WHERE user_id = $1", userID)
 				_, _ = ts.DB.RwDb.Exec("DELETE FROM user_role WHERE user_id = $1", userID)
 				_, _ = ts.DB.RwDb.Exec("DELETE FROM users WHERE id = $1", userID)
 			}
@@ -133,9 +136,63 @@ func TestController_UserLogin(t *testing.T) {
 		sessionCookie := findCookie(cookies, "slf")
 		require.NotNil(t, sessionCookie)
 		require.NotEmpty(t, sessionCookie.Value)
+		require.True(t, sessionCookie.HttpOnly)
+		require.True(t, sessionCookie.Secure)
+		require.Equal(t, http.SameSiteStrictMode, sessionCookie.SameSite)
+		require.Equal(t, 0, sessionCookie.MaxAge)
+
+		deviceCookie := findCookie(cookies, "slf_did")
+		require.NotNil(t, deviceCookie)
+		require.NotEmpty(t, deviceCookie.Value)
+		require.True(t, deviceCookie.HttpOnly)
+
+		var storedHash string
+		err = ts.DB.RwDb.Get(&storedHash, "SELECT session_token_hash FROM user_session WHERE user_id = $1 ORDER BY issued_at DESC LIMIT 1", userID)
+		require.NoError(t, err)
+		require.NotEqual(t, sessionCookie.Value, storedHash)
 
 		t.Cleanup(func() {
 			_, _ = ts.DB.RwDb.Exec("DELETE FROM user_session WHERE user_id = $1", userID)
+			_, _ = ts.DB.RwDb.Exec("DELETE FROM user_device WHERE user_id = $1", userID)
+		})
+	})
+
+	t.Run("RememberMe", func(t *testing.T) {
+		testUserEmail := "travis@alwis.dev"
+		password := "passVVord"
+
+		var userID uint
+		err := ts.DB.RwDb.Get(&userID, "SELECT id FROM users WHERE email = $1", testUserEmail)
+		require.NoError(t, err)
+
+		loginReq := request.LoginRequest{
+			Email:      testUserEmail,
+			Password:   password,
+			RememberMe: true,
+		}
+
+		resp := test.DoPost(t, ts.S.URL, "/api/v1/auth/login", loginReq)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		sessionCookie := findCookie(resp.Cookies(), "slf")
+		require.NotNil(t, sessionCookie)
+		require.Greater(t, sessionCookie.MaxAge, int((29 * 24 * time.Hour).Seconds()))
+
+		var rememberMe bool
+		var expiresAt, absoluteExpiresAt time.Time
+		err = ts.DB.RwDb.QueryRow(
+			`SELECT remember_me, expires_at, absolute_expires_at
+			 FROM user_session WHERE user_id = $1 ORDER BY issued_at DESC LIMIT 1`,
+			userID,
+		).Scan(&rememberMe, &expiresAt, &absoluteExpiresAt)
+		require.NoError(t, err)
+		require.True(t, rememberMe)
+		require.WithinDuration(t, expiresAt, absoluteExpiresAt, time.Second)
+		require.True(t, expiresAt.After(time.Now().Add(29*24*time.Hour)))
+
+		t.Cleanup(func() {
+			_, _ = ts.DB.RwDb.Exec("DELETE FROM user_session WHERE user_id = $1", userID)
+			_, _ = ts.DB.RwDb.Exec("DELETE FROM user_device WHERE user_id = $1", userID)
 		})
 	})
 

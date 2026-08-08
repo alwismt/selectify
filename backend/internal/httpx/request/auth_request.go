@@ -21,8 +21,9 @@ func (req *UserRegisterRequest) Validate() error {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email,max=255"`
-	Password string `json:"password" validate:"required,min=8,max=72"`
+	Email      string `json:"email" validate:"required,email,max=255"`
+	Password   string `json:"password" validate:"required,min=8,max=72"`
+	RememberMe bool   `json:"remember_me"`
 }
 
 type ForgotPasswordRequest struct {

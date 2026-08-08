@@ -23,7 +23,8 @@ func init() {
 }
 
 // Render executes a named body template and wraps it in the shared layout.
-func Render(name string, data any) (string, error) {
+// logoURL is the absolute CDN URL for the header logo image.
+func Render(name string, data any, logoURL string) (string, error) {
 	if name == "" {
 		return "", fmt.Errorf("template name is required")
 	}
@@ -38,7 +39,8 @@ func Render(name string, data any) (string, error) {
 
 	var out bytes.Buffer
 	if err := templates.ExecuteTemplate(&out, "layout.html", map[string]any{
-		"Body": template.HTML(bodyBuf.String()),
+		"Body":    template.HTML(bodyBuf.String()),
+		"LogoURL": logoURL,
 	}); err != nil {
 		return "", fmt.Errorf("render layout: %w", err)
 	}

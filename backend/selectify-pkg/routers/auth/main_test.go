@@ -11,8 +11,7 @@ var ts *testkit.TestSetup
 
 func TestMain(m *testing.M) {
 	ts = testkit.NewTestSetup()
-
-	defer ts.Close()
-
-	os.Exit(m.Run())
+	code := m.Run()
+	ts.Close()
+	os.Exit(code)
 }

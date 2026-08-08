@@ -50,7 +50,7 @@ func (pr *productRepo) GetProductBySlug(ctx context.Context, slug string) (*mode
 
 	err := pr.roDb.GetContext(ctx, &product, query, slug)
 	if err != nil {
-		err = logger.Errorf(ctx, err, "error getting product by id %d", slug)
+		err = logger.Errorf(ctx, err, "error getting product by slug %s", slug)
 		return nil, err
 	}
 	return &product, nil

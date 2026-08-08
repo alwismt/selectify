@@ -30,15 +30,12 @@ type UserService interface {
 }
 
 type loginNotificationData struct {
-	FirstName   string
-	LastName    string
-	LoggedInAt  string
-	IP          string
-	UserAgent   string
-	Country     string
-	City        string
-	Subdivision string
-	Timezone    string
+	FirstName  string
+	LastName   string
+	LoggedInAt string
+	IP         string
+	UserAgent  string
+	Location   string
 }
 
 type passwordResetEmailData struct {
@@ -240,13 +237,7 @@ func (s *userService) ProcessUserLoggedIn(ctx context.Context, event *model.Even
 		LoggedInAt: time.Now().UTC().Format("2006-01-02 15:04:05 UTC"),
 		IP:         ip,
 		UserAgent:  userAgent,
-	}
-	if s.geoIPService != nil && ip != "unknown" {
-		loc := s.geoIPService.Lookup(ip)
-		data.Country = loc.Country
-		data.City = loc.City
-		data.Subdivision = loc.Subdivision
-		data.Timezone = loc.Timezone
+		Location:   s.formatLocation(ip),
 	}
 
 	err = s.emailService.SendTemplate(ctx, TemplateMessage{
@@ -386,7 +377,7 @@ func (s *userService) requireActiveUserForEmail(ctx context.Context, userID uint
 
 func (s *userService) formatLocation(ip string) string {
 	if s.geoIPService == nil || ip == "" || ip == "unknown" {
-		return "Unknown"
+		return "Location unknown"
 	}
 	loc := s.geoIPService.Lookup(ip)
 	switch {
@@ -397,7 +388,7 @@ func (s *userService) formatLocation(ip string) string {
 	case loc.City != "":
 		return loc.City
 	default:
-		return "Unknown"
+		return "Location unknown"
 	}
 }
 

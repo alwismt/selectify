@@ -71,7 +71,7 @@ Default roles from init:
 
 ### Migrations
 
-There is no automated migrator. Apply versioned SQL under [`database/migrations/`](database/migrations/) **manually in order** (`V1_1` … `V1_13`) after init.
+There is no automated migrator. Apply versioned SQL under [`database/migrations/`](database/migrations/) **manually in order** (`V1_1` … `V1_17`) after init.
 
 ### Tests
 
@@ -97,7 +97,6 @@ Templates:
 | `API_DB_MAX_IDLE` / `MAX_OPEN` / `MAX_LIFETIME` | Pool settings |
 | `API_DB_RW_USER` / `PASSWORD` | Read-write credentials |
 | `API_DB_RO_USER` / `PASSWORD` | Read-only credentials |
-| `API_JWT_SECRET` / `ISSUER` / `ACCESS_TTL` | JWT config (present; live auth uses cookie sessions) |
 | `API_GRPC_PAYMENT_ADDRESS` | Payment gRPC address (default `localhost:3002`) |
 
 ### Payment (`PAY_*`)
@@ -136,9 +135,10 @@ Useful Makefile targets (from `backend/`):
 
 ## Auth
 
-- Register / login create a `user_session` (UUID, short TTL) and set HttpOnly cookies `slf` (session id) and `slf_ss`.
-- Cookies use `Secure` and `SameSite=Strict`.
-- Protected routes load the session from the `slf` cookie.
+- Register / login create a `user_session` with a hashed session secret and set HttpOnly cookies `slf` (raw secret) and `slf_ss`.
+- Cookies use `Secure` and `SameSite=Strict`. Regular sessions are browser cookies with a 6-hour idle timeout (absolute max 7 days) and renew hourly while active. “Keep me signed in” uses a fixed 30-day persistent cookie.
+- A separate `slf_did` device cookie identifies the browser installation only; it never authenticates requests.
+- Protected routes hash the `slf` cookie and load the matching non-revoked session.
 - Passwords are hashed with bcrypt. New users get a customer role via `user_role`.
 
 ## HTTP API (`/api/v1`)
