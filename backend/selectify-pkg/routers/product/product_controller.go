@@ -64,6 +64,7 @@ func (c *controller) GetProductBySlug(w http.ResponseWriter, r *http.Request) {
 
 // GetProducts Todo:: ?search=&category_id=&min_price=&max_price=&sort=&page=&limit=
 func (c *controller) GetProducts(w http.ResponseWriter, r *http.Request) {
+	httpx.ClientIP(r)
 	ctx := r.Context()
 	products, err := c.productService.GetProducts(ctx)
 	if err != nil {

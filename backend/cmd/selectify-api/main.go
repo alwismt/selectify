@@ -1,5 +1,3 @@
-//go:build test
-
 package main
 
 import (
@@ -12,12 +10,11 @@ import (
 	"strings"
 	"syscall"
 
-	"alwis.dev/selectify/selectify-pkg/app"
-
 	"github.com/joho/godotenv"
 
 	"alwis.dev/selectify/internal/logger"
 	"alwis.dev/selectify/internal/program"
+	"alwis.dev/selectify/selectify-pkg/app"
 	"alwis.dev/selectify/selectify-pkg/routers"
 )
 
@@ -40,9 +37,8 @@ func main() {
 		Addr:    ":3001",
 		Handler: h,
 	}
-
 	go func() {
-		//logger.Info(ctx, "Server starting on :3000")
+		logger.Infof(ctx, "Server starting on %s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil {
 			logger.Fatal(ctx, err, "Server failed to start")
 		}

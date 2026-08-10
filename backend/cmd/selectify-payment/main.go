@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -36,27 +35,26 @@ func main() {
 	app.NewAppEnvironment()
 
 	h := routers.CreateHandler()
-
 	srv := &http.Server{
 		Addr:    ":3003",
 		Handler: h,
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Fatal(ctx, err, "HTTP server failed")
+		if err := srv.ListenAndServe(); err != nil {
+			logger.Fatal(ctx, err, "Server failed to start")
 		}
 	}()
 
 	// gRPC
+	grpcServer := grpc.NewServer()
+	grpcproto.RegisterGrpc(grpcServer)
+
 	go func() {
 		lis, err := net.Listen("tcp", ":3002")
 		if err != nil {
 			logger.Fatal(ctx, err, "failed to listen for gRPC")
 		}
-
-		grpcServer := grpc.NewServer()
-		grpcproto.RegisterGrpc(grpcServer)
 
 		if err := grpcServer.Serve(lis); err != nil {
 			logger.Fatal(ctx, err, "gRPC server failed")
@@ -70,6 +68,10 @@ func main() {
 	<-quit
 
 	logger.Info(ctx, "Shutting down server...")
+
+	// Stop accepting new gRPC requests and finish existing ones.
+	grpcServer.GracefulStop()
+
 	if err := srv.Shutdown(ctx); err != nil {
 		_ = logger.Errorf(ctx, err, "Server forced to shutdown")
 	}

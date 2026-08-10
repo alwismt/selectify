@@ -1,6 +1,6 @@
 module alwis.dev/selectify
 
-go 1.24.7
+go 1.25.0
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.43.4
@@ -17,9 +17,10 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lmittmann/tint v1.1.2
 	github.com/oschwald/geoip2-golang v1.13.0
+	github.com/quic-go/quic-go v0.61.0
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v86 v86.2.0
-	golang.org/x/crypto v0.46.0
+	golang.org/x/crypto v0.54.0
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 )
@@ -43,12 +44,14 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
+	github.com/quic-go/qpack v0.6.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
