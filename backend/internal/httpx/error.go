@@ -33,3 +33,12 @@ func SendUnAuthorized(w http.ResponseWriter) {
 		_ = logger.Error(context.Background(), err, "Failed to send json response")
 	}
 }
+
+func SendNotFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+}
+
+func SendUnAuthorizedWithNotFoud(w http.ResponseWriter) {
+	DeleteSessionCookies(w)
+	SendNotFound(w)
+}

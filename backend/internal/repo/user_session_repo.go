@@ -15,9 +15,9 @@ import (
 )
 
 type UserSessionRepo interface {
-	InsertUserSession(ctx context.Context, s *model.UserSession) error
-	GetByTokenHash(ctx context.Context, tokenHash string) (*model.UserSession, error)
-	RenewIfStale(ctx context.Context, sessionID uuid.UUID, idleTTL, activityThrottle time.Duration) (*model.UserSession, error)
+	InsertUserSession(ctx context.Context, s *model.LoggedInSession) error
+	GetByTokenHash(ctx context.Context, tokenHash string) (*model.LoggedInSession, error)
+	RenewIfStale(ctx context.Context, sessionID uuid.UUID, idleTTL, activityThrottle time.Duration) (*model.LoggedInSession, error)
 	RevokeSession(ctx context.Context, id uuid.UUID) error
 }
 
@@ -33,7 +33,7 @@ func NewUserSessionRepo(db *db.DatabaseConnection) UserSessionRepo {
 	}
 }
 
-func (r *userSessionRepo) InsertUserSession(ctx context.Context, s *model.UserSession) error {
+func (r *userSessionRepo) InsertUserSession(ctx context.Context, s *model.LoggedInSession) error {
 	query := `
 		INSERT INTO user_session (
 			user_id, session_id, session_token_hash, expires_at, absolute_expires_at,
@@ -59,8 +59,8 @@ func (r *userSessionRepo) InsertUserSession(ctx context.Context, s *model.UserSe
 	return nil
 }
 
-func (r *userSessionRepo) GetByTokenHash(ctx context.Context, tokenHash string) (*model.UserSession, error) {
-	userSession := new(model.UserSession)
+func (r *userSessionRepo) GetByTokenHash(ctx context.Context, tokenHash string) (*model.LoggedInSession, error) {
+	userSession := new(model.LoggedInSession)
 	query := `
 		SELECT user_session.*
 		FROM user_session
@@ -82,7 +82,7 @@ func (r *userSessionRepo) GetByTokenHash(ctx context.Context, tokenHash string) 
 // RenewIfStale extends idle expiry when last_activity_at is older than activityThrottle.
 // Remember-me sessions are not idle-extended. Concurrent callers are serialized by the
 // conditional UPDATE so only one write succeeds per throttle window.
-func (r *userSessionRepo) RenewIfStale(ctx context.Context, sessionID uuid.UUID, idleTTL, activityThrottle time.Duration) (*model.UserSession, error) {
+func (r *userSessionRepo) RenewIfStale(ctx context.Context, sessionID uuid.UUID, idleTTL, activityThrottle time.Duration) (*model.LoggedInSession, error) {
 	now := time.Now().UTC()
 	staleBefore := now.Add(-activityThrottle)
 	candidateExpires := now.Add(idleTTL)
@@ -100,7 +100,7 @@ func (r *userSessionRepo) RenewIfStale(ctx context.Context, sessionID uuid.UUID,
 		RETURNING *
 	`
 
-	updated := new(model.UserSession)
+	updated := new(model.LoggedInSession)
 	err := r.rwDb.GetContext(ctx, updated, query, now, candidateExpires, sessionID, staleBefore)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

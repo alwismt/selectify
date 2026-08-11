@@ -100,7 +100,7 @@ func deviceTokenFromRequest(r *http.Request) string {
 	return c.Value
 }
 
-func (c *controller) Logout(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) Logout(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	if err := c.authService.UserLogout(r.Context(), s.SessionId); err != nil {
 		httpx.SendError(w, fmt.Errorf("failed logout"))
 		return

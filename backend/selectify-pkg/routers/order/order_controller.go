@@ -16,7 +16,7 @@ import (
 	"alwis.dev/selectify/internal/params"
 )
 
-func (c *controller) CreateOrder(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) CreateOrder(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	ctx := r.Context()
 
 	order, err := c.orderService.CreateOrder(ctx, s.User)
@@ -35,7 +35,7 @@ func (c *controller) CreateOrder(w http.ResponseWriter, r *http.Request, s *mode
 	return
 }
 
-func (c *controller) GetOrders(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) GetOrders(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	ctx := r.Context()
 
 	orders, err := c.orderService.GetOrders(ctx, s.User)
@@ -54,7 +54,7 @@ func (c *controller) GetOrders(w http.ResponseWriter, r *http.Request, s *model.
 	return
 }
 
-func (c *controller) SetOrderShippingAddress(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) SetOrderShippingAddress(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	ctx := r.Context()
 
 	orderIDStr := chi.URLParam(r, params.OrderId)

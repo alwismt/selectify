@@ -36,7 +36,7 @@ func TestUserSessionRepo_InsertAndGetByTokenHash(t *testing.T) {
 	require.NoError(t, err)
 
 	now := time.Now().UTC()
-	session := &model.UserSession{
+	session := &model.LoggedInSession{
 		UserId:            user.ID,
 		SessionId:         uuid.New(),
 		SessionTokenHash:  hash,
@@ -73,7 +73,7 @@ func TestUserSessionRepo_RenewIfStale(t *testing.T) {
 	_ = raw
 
 	now := time.Now().UTC()
-	session := &model.UserSession{
+	session := &model.LoggedInSession{
 		UserId:            testUser.ID,
 		SessionId:         uuid.New(),
 		SessionTokenHash:  hash,
@@ -106,7 +106,7 @@ func TestUserSessionRepo_RememberMeNotRenewed(t *testing.T) {
 	require.NoError(t, err)
 
 	now := time.Now().UTC()
-	session := &model.UserSession{
+	session := &model.LoggedInSession{
 		UserId:            testUser.ID,
 		SessionId:         uuid.New(),
 		SessionTokenHash:  hash,
@@ -132,7 +132,7 @@ func TestUserSessionRepo_RevokeSession(t *testing.T) {
 	require.NoError(t, err)
 
 	now := time.Now().UTC()
-	session := &model.UserSession{
+	session := &model.LoggedInSession{
 		UserId:            testUser.ID,
 		SessionId:         uuid.New(),
 		SessionTokenHash:  hash,

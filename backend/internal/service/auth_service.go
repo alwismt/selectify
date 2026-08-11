@@ -31,8 +31,8 @@ var (
 )
 
 type AuthService interface {
-	RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip, deviceToken string) (*model.UserSession, error)
-	LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip, deviceToken string) (*model.UserSession, error)
+	RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip, deviceToken string) (*model.LoggedInSession, error)
+	LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip, deviceToken string) (*model.LoggedInSession, error)
 	UserLogout(ctx context.Context, sesId uuid.UUID) (err error)
 	ForgetPassword(ctx context.Context, email, ip, userAgent string) error
 	ValidateResetToken(ctx context.Context, token string) error
@@ -70,7 +70,7 @@ func NewAuthService(
 	}
 }
 
-func (svc *authService) RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip, deviceToken string) (*model.UserSession, error) {
+func (svc *authService) RegisterUser(ctx context.Context, req *request.UserRegisterRequest, userAgent, ip, deviceToken string) (*model.LoggedInSession, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, logger.Error(ctx, err, "Error while hashing password")
@@ -115,7 +115,7 @@ func (svc *authService) RegisterUser(ctx context.Context, req *request.UserRegis
 	return svc.newUserSession(ctx, user.ID, userAgent, ip, deviceToken, false)
 }
 
-func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip, deviceToken string) (*model.UserSession, error) {
+func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest, userAgent, ip, deviceToken string) (*model.LoggedInSession, error) {
 	user, err := svc.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, logger.Errorf(ctx, err, "Error while fetching user by email %s", req.Email)
@@ -149,7 +149,7 @@ func (svc *authService) LoginUser(ctx context.Context, req *request.LoginRequest
 	return session, nil
 }
 
-func (svc *authService) newUserSession(ctx context.Context, userId uint, userAgent, ip, deviceToken string, rememberMe bool) (*model.UserSession, error) {
+func (svc *authService) newUserSession(ctx context.Context, userId uint, userAgent, ip, deviceToken string, rememberMe bool) (*model.LoggedInSession, error) {
 	now := time.Now().UTC()
 
 	rawSession, sessionHash, err := security.NewToken()
@@ -169,7 +169,7 @@ func (svc *authService) newUserSession(ctx context.Context, userId uint, userAge
 		absoluteTTL = RememberMeTTL
 	}
 
-	session := &model.UserSession{
+	session := &model.LoggedInSession{
 		UserId:            userId,
 		UserAgent:         userAgent,
 		IpAddress:         ip,

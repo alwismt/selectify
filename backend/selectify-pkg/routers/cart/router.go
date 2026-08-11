@@ -5,9 +5,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"alwis.dev/selectify/internal/handlers"
 	"alwis.dev/selectify/internal/params"
-	sfHandlers "alwis.dev/selectify/selectify-pkg/handlers"
+	"alwis.dev/selectify/selectify-pkg/handlers"
 )
 
 func Register(r chi.Router) {
@@ -21,11 +20,11 @@ func Register(r chi.Router) {
 
 		// route PATCH /api/v1/cart/items/{item_id}
 		r.Method(http.MethodPatch, "/items/"+params.CartItemIdParam, handlers.UserSessionHandler(
-			sfHandlers.CartItemHandler(c.UpdateCartItem)))
+			handlers.CartItemHandler(c.UpdateCartItem)))
 
 		// route DELETE /api/v1/cart/items/{item_id}
 		r.Method(http.MethodDelete, "/items/"+params.CartItemIdParam, handlers.UserSessionHandler(
-			sfHandlers.CartItemHandler(c.DeleteCartItem)))
+			handlers.CartItemHandler(c.DeleteCartItem)))
 
 	})
 }

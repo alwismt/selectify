@@ -7,10 +7,10 @@ import (
 )
 
 type UserRole struct {
-	ID        int            `db:"id" json:"-"`
-	UserID    uint           `db:"user_id" json:"-"`
-	Role      types.UserRole `db:"role" json:"role"`
-	ScopeType *string        `db:"scope_type" json:"scope_type,omitempty"`
-	ScopeID   *uint          `db:"scope_id" json:"scope_id,omitempty"`
-	CreatedAt time.Time      `db:"created_at" json:"-"`
+	ID           int            `db:"id" json:"-"`
+	UserID       uint           `db:"user_id" json:"-"`
+	Role         types.UserRole `db:"role" json:"role"`
+	MerchantRole *string        `db:"merchant_role" json:"merchant_role,omitempty"`
+	MerchantID   *uint          `db:"merchant_id" json:"merchant_id,omitempty"`
+	CreatedAt    time.Time      `db:"created_at" json:"-"`
 }

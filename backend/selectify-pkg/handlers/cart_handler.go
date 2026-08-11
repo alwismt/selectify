@@ -15,7 +15,7 @@ import (
 	"alwis.dev/selectify/selectify-pkg/app"
 )
 
-type CartItemHandlerFunc func(http.ResponseWriter, *http.Request, *model.UserSession, *model.CartItem)
+type CartItemHandlerFunc func(http.ResponseWriter, *http.Request, *model.LoggedInSession, *model.CartItem)
 
 type cartItemHandler struct {
 	cartRepo repo.CartRepo
@@ -35,7 +35,7 @@ func CartItemHandler(fn CartItemHandlerFunc) cartItemHandler {
 	return cartItemHandler{}.init(fn)
 }
 
-func (h cartItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (h cartItemHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	ctx := r.Context()
 	cartItemIdStr := chi.URLParam(r, params.CartItemId)
 	if cartItemIdStr == "" {

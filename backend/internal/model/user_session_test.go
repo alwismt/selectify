@@ -13,7 +13,7 @@ func TestUserSession_IsExpired(t *testing.T) {
 	now := time.Now().UTC()
 
 	t.Run("valid", func(t *testing.T) {
-		s := &model.UserSession{
+		s := &model.LoggedInSession{
 			ExpiresAt:         now.Add(time.Hour),
 			AbsoluteExpiresAt: now.Add(24 * time.Hour),
 		}
@@ -21,7 +21,7 @@ func TestUserSession_IsExpired(t *testing.T) {
 	})
 
 	t.Run("idle expired", func(t *testing.T) {
-		s := &model.UserSession{
+		s := &model.LoggedInSession{
 			ExpiresAt:         now.Add(-time.Minute),
 			AbsoluteExpiresAt: now.Add(24 * time.Hour),
 		}
@@ -29,7 +29,7 @@ func TestUserSession_IsExpired(t *testing.T) {
 	})
 
 	t.Run("absolute expired", func(t *testing.T) {
-		s := &model.UserSession{
+		s := &model.LoggedInSession{
 			ExpiresAt:         now.Add(time.Hour),
 			AbsoluteExpiresAt: now.Add(-time.Minute),
 		}
@@ -38,7 +38,7 @@ func TestUserSession_IsExpired(t *testing.T) {
 
 	t.Run("revoked", func(t *testing.T) {
 		revoked := now
-		s := &model.UserSession{
+		s := &model.LoggedInSession{
 			ExpiresAt:         now.Add(time.Hour),
 			AbsoluteExpiresAt: now.Add(24 * time.Hour),
 			RevokedAt:         &revoked,

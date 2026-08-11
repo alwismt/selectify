@@ -15,14 +15,14 @@ import (
 
 const maxProfileImageSize = 5 << 20
 
-func (c *controller) UserInfo(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) UserInfo(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	s.User.UserRole = s.UserRole
 	if err := httpx.SendJson(w, http.StatusOK, s.User); err != nil {
 		_ = logger.Error(r.Context(), err, "failed to send user info response")
 	}
 }
 
-func (c *controller) GetUserImage(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) GetUserImage(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	userFile, err := c.userService.GetUserImage(r.Context(), s.User)
 	if err != nil {
 		_ = logger.Error(r.Context(), err, "failed to get user image")
@@ -42,7 +42,7 @@ func (c *controller) GetUserImage(w http.ResponseWriter, r *http.Request, s *mod
 	}
 }
 
-func (c *controller) UpdateUserImage(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) UpdateUserImage(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxProfileImageSize)
 
 	file, _, err := r.FormFile("image")
@@ -72,7 +72,7 @@ func (c *controller) UpdateUserImage(w http.ResponseWriter, r *http.Request, s *
 	}
 }
 
-func (c *controller) DeleteUserImage(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) DeleteUserImage(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	if err := c.userService.DeleteUserImage(r.Context(), s.User); err != nil {
 		_ = logger.Error(r.Context(), err, "failed to delete user image")
 		httpx.SendError(w, err)
@@ -106,7 +106,7 @@ func detectImageContentType(file multipart.File) (string, error) {
 	return contentType, nil
 }
 
-func GetDefaultAddress(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func GetDefaultAddress(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	ctx := r.Context()
 
 	addr, err := app.Repository().UserAddressRepo.GetDefaultByUserID(ctx, s.User.ID)

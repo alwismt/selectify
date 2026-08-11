@@ -13,7 +13,7 @@ const (
 	DeviceCookie = "slf_did" // non-authenticating device identifier
 )
 
-func SetSessionCookies(s *model.UserSession, w http.ResponseWriter) {
+func SetSessionCookies(s *model.LoggedInSession, w http.ResponseWriter) {
 	maxAge := 0
 	if s.RememberMe {
 		maxAge = int(time.Until(s.ExpiresAt).Seconds())
