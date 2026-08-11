@@ -15,7 +15,7 @@ const (
 )
 
 type sessionContext struct {
-	*model.UserSession
+	*model.LoggedInSession
 	Valid bool
 }
 

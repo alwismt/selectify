@@ -34,13 +34,6 @@ func registerRoutes(r chi.Router) {
 	order.Register(r)
 }
 
-//func registerRoutesWithCtx(r chi.Router) {
-//	r.Group(func(r chi.Router) {
-//
-//	})
-//
-//}
-
 func registerHandlers(h http.Handler) http.Handler {
 	corsMw := middleware.CORSMiddleware()
 	headersMw := middleware.HeadersMiddleware()

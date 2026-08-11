@@ -12,7 +12,7 @@ import (
 	"alwis.dev/selectify/internal/model"
 )
 
-func (c *controller) AddToCart(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) AddToCart(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	ctx := r.Context()
 	req := new(request.AddCartReq)
 
@@ -40,7 +40,7 @@ func (c *controller) AddToCart(w http.ResponseWriter, r *http.Request, s *model.
 	return
 }
 
-func (c *controller) UpdateCartItem(w http.ResponseWriter, r *http.Request, _ *model.UserSession, cart *model.CartItem) {
+func (c *controller) UpdateCartItem(w http.ResponseWriter, r *http.Request, _ *model.LoggedInSession, cart *model.CartItem) {
 	ctx := r.Context()
 
 	req := new(request.QntReq)
@@ -73,7 +73,7 @@ func (c *controller) UpdateCartItem(w http.ResponseWriter, r *http.Request, _ *m
 	return
 }
 
-func (c *controller) DeleteCartItem(w http.ResponseWriter, r *http.Request, _ *model.UserSession, cart *model.CartItem) {
+func (c *controller) DeleteCartItem(w http.ResponseWriter, r *http.Request, _ *model.LoggedInSession, cart *model.CartItem) {
 	ctx := r.Context()
 
 	if err := c.cartService.DeleteCartItem(ctx, cart); err != nil {
@@ -85,7 +85,7 @@ func (c *controller) DeleteCartItem(w http.ResponseWriter, r *http.Request, _ *m
 	return
 }
 
-func (c *controller) GetCart(w http.ResponseWriter, r *http.Request, s *model.UserSession) {
+func (c *controller) GetCart(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
 	ctx := r.Context()
 
 	cartResponse, err := c.cartService.GetCartItems(ctx, s.User)

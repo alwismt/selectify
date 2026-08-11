@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserSession struct {
+type LoggedInSession struct {
 	SessionId         uuid.UUID  `db:"session_id" json:"-"`
 	UserId            uint       `db:"user_id" json:"userId"`
 	UserAgent         string     `db:"user_agent" json:"userAgent"`
@@ -28,7 +28,7 @@ type UserSession struct {
 	RawDeviceToken string `db:"-" json:"-"`
 }
 
-func (u *UserSession) IsExpired() bool {
+func (u *LoggedInSession) IsExpired() bool {
 	if u.RevokedAt != nil {
 		return true
 	}

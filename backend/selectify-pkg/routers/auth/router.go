@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/go-chi/chi/v5"
 
-	"alwis.dev/selectify/internal/handlers"
+	"alwis.dev/selectify/selectify-pkg/handlers"
 )
 
 func Register(r chi.Router) {

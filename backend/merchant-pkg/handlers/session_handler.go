@@ -6,17 +6,17 @@ import (
 	"alwis.dev/selectify/internal/handlers"
 	handlersHelper "alwis.dev/selectify/internal/handlers/helper"
 	"alwis.dev/selectify/internal/model"
-	"alwis.dev/selectify/selectify-pkg/app"
+	"alwis.dev/selectify/merchant-pkg/app"
 )
 
-func UserSessionHandler(h handlers.ParamHandler) http.Handler {
+func MerchantSessionHandler(h handlers.ParamHandler) http.Handler {
 	sHandlerHelper := handlersHelper.NewSessionHandlerHelper(app.Repository().UserSessionRepo, app.Repository().UserDeviceRepo,
 		app.Repository().UserRepo, app.Repository().UserRoleRepo)
-	return handlers.UserSessionHandler(h, sHandlerHelper)
+	return handlers.MerchantSessionHandler(h, sHandlerHelper)
 }
 
-func UserSessionHandlerFunc(fn func(http.ResponseWriter, *http.Request, *model.LoggedInSession)) http.HandlerFunc {
+func MerchantSessionHandlerFunc(fn func(http.ResponseWriter, *http.Request, *model.LoggedInSession)) http.HandlerFunc {
 	sHandlerHelper := handlersHelper.NewSessionHandlerHelper(app.Repository().UserSessionRepo, app.Repository().UserDeviceRepo,
 		app.Repository().UserRepo, app.Repository().UserRoleRepo)
-	return handlers.UserSessionHandlerFunc(fn, sHandlerHelper)
+	return handlers.MerchantSessionHandlerFunc(fn, sHandlerHelper)
 }
