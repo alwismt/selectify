@@ -1,8 +1,9 @@
 package httpx
 
 import (
-	"github.com/go-playground/validator/v10"
 	"strings"
+
+	"github.com/go-playground/validator/v10"
 )
 
 func ValidationErrorsToMap(err error) map[string]string {
@@ -17,6 +18,17 @@ func ValidationErrorsToMap(err error) map[string]string {
 		field := fe.Field()
 		tag := fe.Tag()
 
+		// Field-specific errors
+		if fe.Field() == "CountryCode" {
+			switch tag {
+			case "len":
+				errors[field] = "Country code must be 2 characters"
+			default:
+				errors[field] = "Invalid country code"
+			}
+			continue
+		}
+
 		switch tag {
 		case "required":
 			errors[toSnakeCase(field)] = "This field is required"
@@ -26,6 +38,8 @@ func ValidationErrorsToMap(err error) map[string]string {
 			errors[toSnakeCase(field)] = "Too short"
 		case "max":
 			errors[toSnakeCase(field)] = "Too long"
+		case "len":
+			errors[toSnakeCase(field)] = "Wrong length"
 		default:
 			errors[toSnakeCase(field)] = "Invalid value"
 		}

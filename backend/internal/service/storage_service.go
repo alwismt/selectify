@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -13,10 +12,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"alwis.dev/selectify/internal/logger"
+	"alwis.dev/selectify/internal/model"
 )
 
 type StorageService interface {
-	UploadFile(ctx context.Context, file io.Reader, objectKey string, contentType string) error
+	UploadFile(ctx context.Context, file model.FileStream, objectKey string) error
 	DeleteFile(ctx context.Context, objectKey string) error
 }
 
@@ -70,29 +70,26 @@ func NewStorageService() StorageService {
 
 }
 
-func (s *storageService) UploadFile(ctx context.Context, file io.Reader, objectKey string, contentType string) error {
+func (s *storageService) UploadFile(ctx context.Context, file model.FileStream, objectKey string) error {
 	if file == nil {
 		return fmt.Errorf("file is required")
 	}
 	if objectKey == "" {
 		return fmt.Errorf("object key is required")
 	}
-	if contentType == "" {
-		return fmt.Errorf("content type is required")
-	}
 
 	objectKey = strings.TrimLeft(objectKey, "/")
 	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String(s.bucketName),
-		Key:         aws.String(objectKey),
-		Body:        file,
-		ContentType: aws.String(contentType),
+		Bucket:        aws.String(s.bucketName),
+		Key:           aws.String(objectKey),
+		Body:          file,
+		ContentType:   aws.String(file.ContentType()),
+		ContentLength: aws.Int64(file.Size()),
 	})
 	if err != nil {
 		return logger.Errorf(ctx, err, "failed to upload %q to bucket %q", objectKey, s.bucketName)
 	}
 	return nil
-
 }
 
 func (s *storageService) DeleteFile(ctx context.Context, objectKey string) error {

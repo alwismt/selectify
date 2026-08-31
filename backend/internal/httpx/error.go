@@ -10,10 +10,14 @@ import (
 )
 
 var (
-	ErrInvalidRequest = fmt.Errorf("INVALID_REQUEST")
-	ErrInternalServer = fmt.Errorf("INTERNAL_SERVER")
-	ErrUserNotFound   = errors.New("user not found")
+	ErrInvalidRequest = fmt.Errorf("invalid_request")
+	ErrInvalidCountry = errors.New("invalid_country")
+
+	ErrInternalServer = fmt.Errorf("internal_server_error")
+	ErrUserNotFound   = errors.New("user_not _found")
 	ErrUnauthorized   = errors.New("unauthorized")
+	ErrForbidden      = errors.New("forbidden")
+	ErrBadRequest     = errors.New("bad_request")
 )
 
 var (
@@ -30,6 +34,12 @@ func SendError(w http.ResponseWriter, err error) {
 func SendUnAuthorized(w http.ResponseWriter) {
 	DeleteSessionCookies(w)
 	if err := SendJson(w, http.StatusUnauthorized, &StatusResponse{Status: "error", Message: ErrUnauthorized.Error()}); err != nil {
+		_ = logger.Error(context.Background(), err, "Failed to send json response")
+	}
+}
+
+func SendForbidden(w http.ResponseWriter) {
+	if err := SendJson(w, http.StatusForbidden, &StatusResponse{Status: "error", Message: ErrForbidden.Error()}); err != nil {
 		_ = logger.Error(context.Background(), err, "Failed to send json response")
 	}
 }

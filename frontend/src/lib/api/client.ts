@@ -1,7 +1,8 @@
-import { apiUrl, orderAddress } from "./config";
+import { apiUrl, orderAddress, API_PATHS } from "./config";
 import type { Order, OrderAddress, OrderShippingAddressInput } from "@/types/api/order";
 import type { UserAddress } from "@/types/api/userAddress";
 import { isUserFile, type UserFile } from "@/types/api/userFile";
+import type { Merchant, UpdateMerchantInput } from "@/types/merchant";
 import { handleSessionExpired, isAuthExemptPath } from "./session";
 
 export type ClientRequestInit = Omit<RequestInit, "method">;
@@ -118,6 +119,13 @@ export async function clientUserFileDelete(): Promise<void> {
     maybeHandleUnauthorized("/user/me", res.status);
     throw new Error(`API error ${res.status}: ${res.statusText}`);
   }
+}
+
+/** PATCH /merchant — update store name, description, or country. */
+export async function clientUpdateMerchant(
+  data: UpdateMerchantInput
+): Promise<Merchant> {
+  return apiClientPatch<Merchant>(API_PATHS.merchant, data);
 }
 
 async function clientFetch(path: string, init?: RequestInit): Promise<Response> {

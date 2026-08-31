@@ -1,3 +1,9 @@
+export type UserRole = {
+  role: string;
+  merchant_role?: string;
+  merchant_id?: number;
+};
+
 export type User = {
   id: number;
   email: string;
@@ -6,4 +12,5 @@ export type User = {
   phone: string;
   status: string;
   created_at: string;
+  user_role?: UserRole;
 };

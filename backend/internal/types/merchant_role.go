@@ -1,14 +1,5 @@
 package types
 
-type MerchantRole string
-
-const (
-	MerchantRoleOwner   MerchantRole = "owner"
-	MerchantRoleAdmin   MerchantRole = "admin"
-	MerchantRoleManager MerchantRole = "manager"
-	MerchantRoleStaff   MerchantRole = "staff"
-)
-
 type MerchantStatus string
 
 const (
