@@ -23,10 +23,6 @@ type sessionHandler struct {
 	userRoleRepo repo.UserRoleRepo
 }
 
-type ParamHandler interface {
-	ServeHTTP(http.ResponseWriter, *http.Request, *model.LoggedInSession)
-}
-
 func UserSessionHandlerFunc(fn func(http.ResponseWriter, *http.Request, *model.LoggedInSession), helper *handlersHelper.SessionHandlerHelper) http.HandlerFunc {
 	h := initSessionHandler(funcHandler{fn: fn}, false, false, helper)
 	return h.ServeHTTP

@@ -1,16 +1,19 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
+import { useMerchant } from "@/app/context/MerchantContext";
 import UserAvatar from "@/components/Common/UserAvatar";
 
 const navItems = [
-  { id: "overview", label: "Overview", active: true },
-  { id: "products", label: "Products", active: false },
-  { id: "orders", label: "Orders", active: false },
-  { id: "inventory", label: "Inventory", active: false },
-  { id: "analytics", label: "Analytics", active: false },
-  { id: "payments", label: "Payments", active: false },
-  { id: "settings", label: "Store Settings", active: false },
+  { id: "overview", label: "Overview", href: "/merchant" },
+  { id: "products", label: "Products", href: "/merchant/products" },
+  { id: "orders", label: "Orders", href: "/merchant/orders" },
+  { id: "inventory", label: "Inventory", href: "/merchant/inventory" },
+  { id: "analytics", label: "Analytics", href: "/merchant/analytics" },
+  { id: "payments", label: "Payments", href: "/merchant/payments" },
+  { id: "settings", label: "Store Settings", href: "/merchant/store-settings" },
 ] as const;
 
 function NavIcon({ id }: { id: (typeof navItems)[number]["id"] }) {
@@ -125,11 +128,15 @@ function NavIcon({ id }: { id: (typeof navItems)[number]["id"] }) {
 }
 
 const MerchantSidebar = () => {
+  const pathname = usePathname();
   const { user, userFile } = useUser();
+  const { merchant } = useMerchant();
+  const merchantName = merchant?.name;
   const displayName = user
-    ? [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+    ? [user.first_name, "|", user.user_role.role, "-", user.user_role.merchant_role].filter(Boolean).join(" ").trim() ||
       "Seller"
     : "Seller";
+  // const roleLabel = merchant?.name || "Seller";
 
   return (
     <aside className="w-full bg-white rounded-xl shadow-1 xl:w-[320px] xl:shrink-0">
@@ -148,27 +155,44 @@ const MerchantSidebar = () => {
           </div>
 
           <div>
-            <p className="font-medium text-dark mb-0.5">{displayName}</p>
-            <p className="text-custom-sm text-dark-4">Seller</p>
+            <p className="font-medium text-dark mb-0.5">{merchantName}</p>
+            <p className="text-custom-sm text-dark-4">{displayName}</p>
           </div>
         </div>
 
         <div className="p-4 sm:p-7.5 xl:p-9">
           <div className="flex flex-wrap xl:flex-nowrap xl:flex-col gap-4">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`flex items-center rounded-md gap-2.5 py-3 px-4.5 ease-out duration-200 hover:bg-blue hover:text-white ${
-                  item.active
-                    ? "text-white bg-blue"
-                    : "text-dark-2 bg-gray-1"
-                }`}
-              >
-                <NavIcon id={item.id} />
-                {item.label}
-              </button>
-            ))}
+            {navItems.map((item) => {
+              const isActive =
+                item.href === "/merchant"
+                  ? pathname === "/merchant"
+                  : pathname?.startsWith(item.href);
+
+              // Placeholder routes (not yet implemented) stay as non-links
+              const isImplemented =
+                item.href === "/merchant" ||
+                item.href === "/merchant/store-settings";
+
+              const className = `flex items-center rounded-md gap-2.5 py-3 px-4.5 ease-out duration-200 hover:bg-blue hover:text-white ${
+                isActive ? "text-white bg-blue" : "text-dark-2 bg-gray-1"
+              }`;
+
+              if (!isImplemented) {
+                return (
+                  <button key={item.id} type="button" className={className}>
+                    <NavIcon id={item.id} />
+                    {item.label}
+                  </button>
+                );
+              }
+
+              return (
+                <Link key={item.id} href={item.href} className={className}>
+                  <NavIcon id={item.id} />
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

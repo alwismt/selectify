@@ -1,5 +1,4 @@
-*.tsx linguist-detectable=false
-*.css linguist-generated
-*.js linguist-generated
-frontend/src/components/** linguist-vendored
-*.mmdb linguist-vendored
+*.tsx -linguist-detectable
+*.css -linguist-detectable
+*.js -linguist-detectable
+*.mmdb -linguist-detectable

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net"
 	"net/url"
 	"os"
@@ -22,7 +21,7 @@ import (
 
 type UserService interface {
 	GetUserImage(ctx context.Context, user *model.User) (*model.UserFile, error)
-	UpsertUserImage(ctx context.Context, user *model.User, file io.Reader, contentType string) (*model.UserFile, error)
+	UpsertUserImage(ctx context.Context, user *model.User, fileStream model.FileStream) (*model.UserFile, error)
 	DeleteUserImage(ctx context.Context, user *model.User) error
 
 	ProcessUserLoggedIn(ctx context.Context, event *model.Event) error
@@ -96,15 +95,12 @@ func (s *userService) GetUserImage(ctx context.Context, user *model.User) (*mode
 	return userFile, nil
 }
 
-func (s *userService) UpsertUserImage(ctx context.Context, user *model.User, file io.Reader, contentType string) (*model.UserFile, error) {
+func (s *userService) UpsertUserImage(ctx context.Context, user *model.User, fileStream model.FileStream) (*model.UserFile, error) {
 	if user == nil {
 		return nil, fmt.Errorf("user is required")
 	}
-	if file == nil {
+	if fileStream == nil {
 		return nil, fmt.Errorf("file is required")
-	}
-	if contentType == "" {
-		return nil, fmt.Errorf("content type is required")
 	}
 
 	existingFile, err := s.userFileRepo.GetByUserID(ctx, user.ID)
@@ -121,7 +117,7 @@ func (s *userService) UpsertUserImage(ctx context.Context, user *model.User, fil
 	userFile := &model.UserFile{
 		ID:          uuid.New(),
 		UserID:      user.ID,
-		ContentType: contentType,
+		ContentType: fileStream.ContentType(),
 		CreatedAt:   nil,
 		UpdatedAt:   nil,
 	}
@@ -136,7 +132,7 @@ func (s *userService) UpsertUserImage(ctx context.Context, user *model.User, fil
 	}
 
 	objectKey := userImageObjectKey(userFile.ID)
-	if err = s.storageService.UploadFile(ctx, file, objectKey, contentType); err != nil {
+	if err = s.storageService.UploadFile(ctx, fileStream, objectKey); err != nil {
 		return nil, logger.Error(ctx, err, "error upload user file")
 	}
 

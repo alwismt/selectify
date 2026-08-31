@@ -1,13 +1,10 @@
 package user
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"mime/multipart"
 	"net/http"
 
 	"alwis.dev/selectify/internal/httpx"
+	controller_utils "alwis.dev/selectify/internal/httpx/controller"
 	"alwis.dev/selectify/internal/logger"
 	"alwis.dev/selectify/internal/model"
 	"alwis.dev/selectify/selectify-pkg/app"
@@ -43,24 +40,20 @@ func (c *controller) GetUserImage(w http.ResponseWriter, r *http.Request, s *mod
 }
 
 func (c *controller) UpdateUserImage(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {
-	r.Body = http.MaxBytesReader(w, r.Body, maxProfileImageSize)
-
-	file, _, err := r.FormFile("image")
-
+	file, err := controller_utils.GetMultiPartFile(r, "image", maxProfileImageSize, "image")
 	if err != nil {
 		_ = logger.Error(r.Context(), err, "image is required")
-		http.Error(w, "image is required", http.StatusBadRequest)
+		httpx.SendError(w, err)
 		return
 	}
-	defer file.Close()
-	contentType, err := detectImageContentType(file)
-	if err != nil {
-		_ = logger.Error(r.Context(), err, "invalid image")
-		http.Error(w, "invalid image", http.StatusBadRequest)
-		return
-	}
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			_ = logger.Error(r.Context(), err, "Failed to close file")
+		}
+	}()
 
-	userFile, err := c.userService.UpsertUserImage(r.Context(), s.User, file, contentType)
+	userFile, err := c.userService.UpsertUserImage(r.Context(), s.User, file)
 	if err != nil {
 		_ = logger.Error(r.Context(), err, "failed to update user image")
 		httpx.SendError(w, err)
@@ -80,30 +73,6 @@ func (c *controller) DeleteUserImage(w http.ResponseWriter, r *http.Request, s *
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func detectImageContentType(file multipart.File) (string, error) {
-	buffer := make([]byte, 512)
-
-	n, err := file.Read(buffer)
-	if err != nil && !errors.Is(err, io.EOF) {
-		return "", fmt.Errorf("read image header: %w", err)
-	}
-
-	contentType := http.DetectContentType(buffer[:n])
-
-	switch contentType {
-	case "image/jpeg", "image/jpg", "image/png", "image/webp":
-	default:
-		return "", fmt.Errorf("unsupported image type: %s", contentType)
-	}
-
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		return "", fmt.Errorf("reset image reader: %w", err)
-	}
-
-	return contentType, nil
 }
 
 func GetDefaultAddress(w http.ResponseWriter, r *http.Request, s *model.LoggedInSession) {

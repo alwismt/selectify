@@ -12,6 +12,9 @@ export const API_PATHS = {
   userInfo: "/user/info",
   userMe: "/user/me",
   userDefaultAddress: "/user/addresses/default",
+  merchant: "/merchant",
+  merchantLogo: "/merchant/logo",
+  merchantCountries: "/merchant/countries",
   logout: "/logout",
 } as const;
 
@@ -78,4 +81,13 @@ export function productFileUrl(fileId: string | null | undefined): string {
 export function userFileUrl(fileId: string | null | undefined): string {
   if (!fileId || !getProductFilesBaseUrl()) return "";
   return filesUrl(`/users/${fileId}`);
+}
+
+/**
+ * Public image URL for a merchant logo object key.
+ * Logo is stored as a full object key (e.g. `merchant/logo/{uuid}-{slug}`).
+ */
+export function merchantLogoUrl(logo: string | null | undefined): string {
+  if (!logo || !getProductFilesBaseUrl()) return "";
+  return filesUrl(logo.startsWith("/") ? logo : `/${logo}`);
 }
