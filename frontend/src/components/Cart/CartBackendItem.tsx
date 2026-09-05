@@ -1,22 +1,24 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { CartItem as CartItemType } from "@/types/api/cart";
-import { useCart } from "@/app/context/CartContext";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import { apiClientPatch, apiClientDelete } from "@/lib/api/client";
 import { cartItem } from "@/lib/api/config";
-
-const currencySymbol = (currency: string) => (currency === "EUR" ? "€" : "$");
+import { formatMoney } from "@/lib/format";
 
 const CartBackendItem = ({ item }: { item: CartItemType }) => {
-  const { refetch } = useCart();
+  const router = useRouter();
+  const { currency } = useSiteConfig();
   const [pendingQuantity, setPendingQuantity] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const quantity = pendingQuantity ?? item.quantity;
 
   const { variant } = item;
-  const { product, price_amount, currency, attributes, sku, available_qty } = variant;
+  const { product, price_amount, attributes, sku, available_qty } = variant;
   const lineTotal = price_amount * quantity;
   const attrText =
     Object.keys(attributes || {}).length > 0
@@ -24,6 +26,7 @@ const CartBackendItem = ({ item }: { item: CartItemType }) => {
           .map(([k, v]) => `${k}: ${v}`)
           .join(", ")
       : sku;
+  const imageUrl = item.imageUrl;
 
   const handleQuantityChange = async (newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -33,7 +36,7 @@ const CartBackendItem = ({ item }: { item: CartItemType }) => {
     setPendingQuantity(newQuantity);
     try {
       await apiClientPatch(cartItem(item.id), { quantity: newQuantity });
-      await refetch();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -47,7 +50,7 @@ const CartBackendItem = ({ item }: { item: CartItemType }) => {
     setError(null);
     try {
       await apiClientDelete(cartItem(item.id));
-      await refetch();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Remove failed");
     } finally {
@@ -60,9 +63,21 @@ const CartBackendItem = ({ item }: { item: CartItemType }) => {
       <div className="min-w-[400px]">
         <div className="flex items-center justify-between gap-5">
           <div className="w-full flex items-center gap-5.5">
-            <div className="flex items-center justify-center rounded-[5px] bg-gray-2 max-w-[80px] w-full h-17.5 text-dark-4 text-custom-sm">
-              No image
-            </div>
+            {imageUrl ? (
+              <div className="relative rounded-[5px] max-w-[80px] w-full h-17.5 overflow-hidden bg-gray-2">
+                <Image
+                  src={imageUrl}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center rounded-[5px] bg-gray-2 max-w-[80px] w-full h-17.5 text-dark-4 text-custom-sm">
+                No image
+              </div>
+            )}
             <div>
               <h3 className="text-dark ease-out duration-200 hover:text-blue">
                 {product.name}
@@ -77,8 +92,7 @@ const CartBackendItem = ({ item }: { item: CartItemType }) => {
 
       <div className="min-w-[180px]">
         <p className="text-dark">
-          {currencySymbol(currency)}
-          {price_amount.toFixed(2)}
+          {currency ? formatMoney(price_amount, currency) : "—"}
         </p>
       </div>
 
@@ -141,8 +155,7 @@ const CartBackendItem = ({ item }: { item: CartItemType }) => {
 
       <div className="min-w-[200px]">
         <p className="text-dark">
-          {currencySymbol(currency)}
-          {lineTotal.toFixed(2)}
+          {currency ? formatMoney(lineTotal, currency) : "—"}
         </p>
       </div>
 

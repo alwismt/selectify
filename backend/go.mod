@@ -42,6 +42,8 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/gosimple/slug v1.15.0 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect

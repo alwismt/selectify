@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { clientOrdersGet } from "@/lib/api/client";
-import { formatOrderDate, formatOrderTotal } from "@/lib/format";
+"use client";
+
+import React, { useState } from "react";
+import { formatOrderDate, formatOrderMoney } from "@/lib/format";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import type { Order } from "@/types/api/order";
+import type { SiteCurrency } from "@/types/siteConfig";
 import SingleOrder from "./SingleOrder";
 
 /** Display shape for SingleOrder / OrderModal (orderId, createdAt, status, title, total) */
@@ -15,7 +18,10 @@ type DisplayOrder = {
   raw?: Order;
 };
 
-function orderToDisplay(order: Order): DisplayOrder {
+function orderToDisplay(
+  order: Order,
+  siteCurrency: SiteCurrency | null
+): DisplayOrder {
   const dateStr = order.items[0]?.created_at
     ? formatOrderDate(order.items[0].created_at)
     : "—";
@@ -30,7 +36,7 @@ function orderToDisplay(order: Order): DisplayOrder {
     createdAt: dateStr,
     status: order.status,
     title,
-    total: formatOrderTotal(order.total, order.currency),
+    total: formatOrderMoney(order.total, order.currency, siteCurrency),
     raw: order,
   };
 }
@@ -39,25 +45,21 @@ interface OrdersProps {
   initialOrders?: Order[];
 }
 
-const Orders = ({ initialOrders }: OrdersProps) => {
+const Orders = ({ initialOrders = [] }: OrdersProps) => {
+  const { currency: siteCurrency } = useSiteConfig();
   const [orders, setOrders] = useState<DisplayOrder[]>(() =>
-    initialOrders ? initialOrders.map(orderToDisplay) : []
+    initialOrders.map((o) => orderToDisplay(o, siteCurrency))
   );
+  const [prevInitialOrders, setPrevInitialOrders] = useState(initialOrders);
 
-  useEffect(() => {
-    if (initialOrders !== undefined) return;
-    clientOrdersGet()
-      .then((data) => setOrders(data.map(orderToDisplay)))
-      .catch((err) => {
-        console.log(err.message);
-      });
-  }, [initialOrders]);
-
+  if (initialOrders !== prevInitialOrders) {
+    setPrevInitialOrders(initialOrders);
+    setOrders(initialOrders.map((o) => orderToDisplay(o, siteCurrency)));
+  }
   return (
     <>
       <div className="w-full overflow-x-auto">
         <div className="min-w-[770px]">
-          {/* <!-- order item --> */}
           {orders.length > 0 && (
             <div className="items-center justify-between py-4.5 px-7.5 hidden md:flex ">
               <div className="min-w-[111px]">
@@ -85,7 +87,7 @@ const Orders = ({ initialOrders }: OrdersProps) => {
             </div>
           )}
           {orders.length > 0 ? (
-            orders.map((orderItem, key) => (
+            orders.map((orderItem) => (
               <SingleOrder
                 key={orderItem.orderId}
                 orderItem={orderItem}

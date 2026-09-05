@@ -1,28 +1,30 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useCart } from "@/app/context/CartContext";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import EmptyCart from "./EmptyCart";
 import { apiClientDelete, clientOrdersPost } from "@/lib/api/client";
 import { cartItem } from "@/lib/api/config";
 import { setOrderClientSecret } from "@/lib/stripe/clientSecret";
+import { formatMoney } from "@/lib/format";
 import type { CartItem as CartItemType } from "@/types/api/cart";
 
-const currencySymbol = (currency: string) => (currency === "EUR" ? "€" : "$");
-
 function SidebarCartItem({ item }: { item: CartItemType }) {
-  const { refetch } = useCart();
+  const router = useRouter();
+  const { currency } = useSiteConfig();
   const [removing, setRemoving] = useState(false);
-  const { variant, quantity } = item;
+  const { variant, quantity, imageUrl } = item;
 
   const handleRemove = async () => {
     setRemoving(true);
     try {
       await apiClientDelete(cartItem(item.id));
-      await refetch();
+      router.refresh();
     } finally {
       setRemoving(false);
     }
@@ -31,16 +33,30 @@ function SidebarCartItem({ item }: { item: CartItemType }) {
   return (
     <div className="flex items-center justify-between gap-5">
       <div className="w-full flex items-center gap-6">
-        <div className="flex items-center justify-center rounded-[10px] bg-gray-3 max-w-[90px] w-full h-22.5 text-dark-4 text-custom-sm">
-          No image
-        </div>
+        {imageUrl ? (
+          <div className="relative rounded-[10px] max-w-[90px] w-full h-22.5 overflow-hidden bg-gray-3">
+            <Image
+              src={imageUrl}
+              alt={variant.product.name}
+              fill
+              className="object-cover"
+              sizes="90px"
+            />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center rounded-[10px] bg-gray-3 max-w-[90px] w-full h-22.5 text-dark-4 text-custom-sm">
+            No image
+          </div>
+        )}
         <div>
           <h3 className="font-medium text-dark mb-1 ease-out duration-200 hover:text-blue">
             {variant.product.name}
           </h3>
           <p className="text-custom-sm">
-            Price: {currencySymbol(variant.currency)}
-            {variant.price_amount.toFixed(2)} × {quantity}
+            Price:{" "}
+            {currency
+              ? `${formatMoney(variant.price_amount, currency)} × ${quantity}`
+              : "—"}
           </p>
         </div>
       </div>
@@ -77,7 +93,8 @@ function SidebarCartItem({ item }: { item: CartItemType }) {
 const CartSidebarModal = () => {
   const router = useRouter();
   const { isCartModalOpen, closeCartModal } = useCartModalContext();
-  const { cart, refetch } = useCart();
+  const { cart } = useCart();
+  const { currency } = useSiteConfig();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const cartItems = cart?.items ?? [];
@@ -97,18 +114,21 @@ const CartSidebarModal = () => {
         return;
       }
       setOrderClientSecret(data.id, data.client_secret);
-      await refetch?.();
       closeCartModal();
       router.push(`/checkout?orderId=${data.id}`);
+      router.refresh();
     } catch (err) {
-      setCheckoutError(err instanceof Error ? err.message : "Failed to create order. Please try again.");
+      setCheckoutError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create order. Please try again."
+      );
     } finally {
       setCheckoutLoading(false);
     }
   };
 
   useEffect(() => {
-    // closing modal while clicking outside
     function handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {
         closeCartModal();
@@ -168,7 +188,6 @@ const CartSidebarModal = () => {
 
           <div className="h-[66vh] overflow-y-auto no-scrollbar">
             <div className="flex flex-col gap-6">
-              {/* <!-- cart item --> */}
               {cartItems.length > 0 ? (
                 cartItems.map((item) => (
                   <SidebarCartItem key={item.id} item={item} />
@@ -184,8 +203,7 @@ const CartSidebarModal = () => {
               <p className="font-medium text-xl text-dark">Subtotal:</p>
 
               <p className="font-medium text-xl text-dark">
-                {cart?.currency === "EUR" ? "€" : "$"}
-                {(cart?.subtotal ?? 0).toFixed(2)}
+                {currency ? formatMoney(cart?.subtotal ?? 0, currency) : "—"}
               </p>
             </div>
 

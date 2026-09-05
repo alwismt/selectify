@@ -14,8 +14,8 @@ func Register(r chi.Router) {
 
 	r.Route("/products", func(r chi.Router) {
 		r.Get("/", c.GetProducts)
-		r.Method(http.MethodGet, "/id/"+params.ProductIdParm, handlers.ProductHandler(c.GetProductById))
-		r.MethodFunc(http.MethodGet, "/"+params.ProductSlugParm, c.GetProductBySlug)
+		r.Method(http.MethodGet, "/"+params.ProductIdParm, handlers.ProductHandler(c.GetProductById))
+		//r.MethodFunc(http.MethodGet, "/"+params.ProductPathParm, c.GetProductBySlug)
 
 		// variants
 		r.Method(http.MethodGet, "/"+params.ProductIdParm+"/variants", handlers.ProductHandler(c.GetVariantsForProduct))

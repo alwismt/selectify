@@ -1,0 +1,12 @@
+ALTER TABLE orders
+    ALTER COLUMN subtotal TYPE BIGINT USING (subtotal * 100)::BIGINT,
+    ALTER COLUMN shipping TYPE BIGINT USING (shipping * 100)::BIGINT,
+    ALTER COLUMN discount TYPE BIGINT USING (discount * 100)::BIGINT,
+    ALTER COLUMN total TYPE BIGINT USING (total * 100)::BIGINT;
+
+ALTER TABLE orders
+    ALTER COLUMN shipping SET DEFAULT 0,
+    ALTER COLUMN discount SET DEFAULT 0;
+
+ALTER TABLE order_items
+    ALTER COLUMN unit_price TYPE BIGINT USING (unit_price * 100)::BIGINT;

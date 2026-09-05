@@ -7,8 +7,10 @@ import Dropdown from "./Dropdown";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useCart } from "@/app/context/CartContext";
 import { useUser } from "@/app/context/UserContext";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import { clientFetch } from "@/lib/api/client";
 import { API_PATHS, filesUrl } from "@/lib/api/config";
+import { formatMoney } from "@/lib/format";
 import UserAvatar from "@/components/Common/UserAvatar";
 
 type HeaderVariant = "customer" | "merchant";
@@ -28,6 +30,7 @@ const Header = ({ variant = "customer" }: HeaderProps) => {
   const accountDropdownRef = useRef<HTMLDivElement>(null);
   const { openCartModal } = useCartModalContext();
   const { cart } = useCart();
+  const { currency } = useSiteConfig();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -44,7 +47,9 @@ const Header = ({ variant = "customer" }: HeaderProps) => {
 
   const cartItemCount = cart?.item_count ?? 0;
   const cartSubtotal = cart?.subtotal ?? 0;
-  const cartCurrency = cart?.currency === "EUR" ? "€" : "$";
+  const cartSubtotalLabel = currency
+    ? formatMoney(cartSubtotal, currency)
+    : "—";
 
   const handleOpenCartModal = () => {
     openCartModal();
@@ -388,8 +393,7 @@ const Header = ({ variant = "customer" }: HeaderProps) => {
                         cart
                       </span>
                       <p className="font-medium text-custom-sm text-dark">
-                        {cartCurrency}
-                        {cartSubtotal.toFixed(2)}
+                        {cartSubtotalLabel}
                       </p>
                     </div>
                   </button>

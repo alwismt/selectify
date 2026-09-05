@@ -14,10 +14,10 @@ type Order struct {
 	UserID       uint              `db:"user_id" json:"user_id"`
 	Status       types.OrderStatus `db:"status" json:"status"`
 	Currency     string            `db:"currency" json:"currency"`
-	Subtotal     float64           `db:"subtotal" json:"subtotal"`
-	Shipping     float64           `db:"shipping" json:"shipping"`
-	Discount     float64           `db:"discount" json:"discount"`
-	Total        float64           `db:"total" json:"total"`
+	Subtotal     uint64            `db:"subtotal" json:"subtotal"`
+	Shipping     uint64            `db:"shipping" json:"shipping"`
+	Discount     uint64            `db:"discount" json:"discount"`
+	Total        uint64            `db:"total" json:"total"`
 	CreatedAt    time.Time         `db:"created_at" json:"-"`
 	UpdatedAt    time.Time         `db:"updated_at" json:"-"`
 	Items        OrderItems        `db:"-" json:"items,omitempty"`
@@ -31,8 +31,7 @@ type OrderItem struct {
 	OrderID    uint            `db:"order_id" json:"order_id"`
 	VariantID  uint            `db:"variant_id" json:"variant_id"`
 	SKU        string          `db:"sku" json:"sku"`
-	UnitPrice  float64         `db:"unit_price" json:"unit_price"`
-	Currency   string          `db:"currency" json:"currency"`
+	UnitPrice  uint64          `db:"unit_price" json:"unit_price"`
 	Quantity   uint            `db:"quantity" json:"quantity"`
 	Attributes json.RawMessage `db:"attributes" json:"attributes"` // JSONB stored as string
 	CreatedAt  time.Time       `db:"created_at" json:"created_at"`

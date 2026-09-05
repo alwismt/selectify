@@ -171,6 +171,7 @@ const MerchantSidebar = () => {
               // Placeholder routes (not yet implemented) stay as non-links
               const isImplemented =
                 item.href === "/merchant" ||
+                item.href === "/merchant/products" ||
                 item.href === "/merchant/store-settings";
 
               const className = `flex items-center rounded-md gap-2.5 py-3 px-4.5 ease-out duration-200 hover:bg-blue hover:text-white ${

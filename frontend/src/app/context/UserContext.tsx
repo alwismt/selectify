@@ -35,6 +35,19 @@ export function UserProvider({
 }: UserProviderProps) {
   const [user, setUser] = useState<User | null>(initialUser);
   const [userFile, setUserFile] = useState<UserFile | null>(initialUserFile);
+  const [prevInitialUser, setPrevInitialUser] = useState(initialUser);
+  const [prevInitialUserFile, setPrevInitialUserFile] =
+    useState(initialUserFile);
+
+  // Sync after router.refresh() when layout re-fetches SSR user.
+  if (initialUser !== prevInitialUser) {
+    setPrevInitialUser(initialUser);
+    setUser(initialUser);
+  }
+  if (initialUserFile !== prevInitialUserFile) {
+    setPrevInitialUserFile(initialUserFile);
+    setUserFile(initialUserFile);
+  }
 
   useEffect(() => {
     const onExpired = () => {

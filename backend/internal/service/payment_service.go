@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"log"
-	"math"
 	"os"
 
 	"github.com/stripe/stripe-go/v86"
@@ -53,7 +52,7 @@ func (o *paymentService) CreateStripeClient(ctx context.Context, orderId uint64)
 
 	stripe.Key = o.stripeKey
 	intent, err := paymentintent.New(&stripe.PaymentIntentParams{
-		Amount:   stripe.Int64(int64(math.Round(order.Total * 100))),
+		Amount:   stripe.Int64(int64(order.Total)),
 		Currency: stripe.String(order.Currency),
 		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
 			Enabled: stripe.Bool(true),

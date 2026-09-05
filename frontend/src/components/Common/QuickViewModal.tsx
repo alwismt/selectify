@@ -9,16 +9,24 @@ import Image from "next/image";
 import { usePreviewSlider } from "@/app/context/PreviewSliderContext";
 import { resetQuickView } from "@/redux/features/quickView-slice";
 import { updateproductDetails } from "@/redux/features/product-details";
+import { formatMoney } from "@/lib/format";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 
 const QuickViewModal = () => {
   const { isModalOpen, closeModal } = useModalContext();
   const { openPreviewModal } = usePreviewSlider();
+  const { currency } = useSiteConfig();
   const [quantity, setQuantity] = useState(1);
 
   const dispatch = useDispatch<AppDispatch>();
 
   // get the product data
   const product = useAppSelector((state) => state.quickViewReducer.value);
+  const moneyCurrency =
+    currency ??
+    (product?.currency != null && product?.minorUnit != null
+      ? { code: product.currency, minorUnit: product.minorUnit }
+      : null);
 
   const [activePreview, setActivePreview] = useState(0);
 
@@ -315,10 +323,14 @@ const QuickViewModal = () => {
 
                   <span className="flex items-center gap-2">
                     <span className="font-semibold text-dark text-xl xl:text-heading-4">
-                      ${product.discountedPrice}
+                      {moneyCurrency
+                        ? formatMoney(product.discountedPrice, moneyCurrency)
+                        : "—"}
                     </span>
                     <span className="font-medium text-dark-4 text-lg xl:text-2xl line-through">
-                      ${product.price}
+                      {moneyCurrency
+                        ? formatMoney(product.price, moneyCurrency)
+                        : "—"}
                     </span>
                   </span>
                 </div>

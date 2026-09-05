@@ -27,6 +27,7 @@ type orderService struct {
 
 	paymentClient grpcclient.PaymentClient
 
+	currencyRepo       repo.CurrencyRepo
 	orderRepo          repo.OrderRepo
 	userAddressRepo    repo.UserAddressRepo
 	productVariantRepo repo.ProductVariantsRepo
@@ -35,10 +36,11 @@ type orderService struct {
 
 func NewOrderService(cartService CartService, orderRepo repo.OrderRepo, txRepo repo.TransactionRepo,
 	variantsRepo repo.ProductVariantsRepo, paymentClient grpcclient.PaymentClient,
-	userAddressRepo repo.UserAddressRepo) OrderService {
+	userAddressRepo repo.UserAddressRepo, currencyRepo repo.CurrencyRepo) OrderService {
 	return &orderService{
 		cartService:        cartService,
 		paymentClient:      paymentClient,
+		currencyRepo:       currencyRepo,
 		orderRepo:          orderRepo,
 		userAddressRepo:    userAddressRepo,
 		productVariantRepo: variantsRepo,
@@ -52,14 +54,19 @@ func (o *orderService) CreateOrder(ctx context.Context, user *model.User) (*mode
 		return nil, logger.Error(ctx, err, "failed to get cart items")
 	}
 
+	currency, err := o.currencyRepo.GetDefaultCurrency(ctx)
+	if err != nil {
+		return nil, logger.Error(ctx, err, "failed to get default currency")
+	}
+
 	order := &model.Order{
 		UserID:   user.ID,
 		Status:   types.OrderStatusNew,
-		Currency: cart.Currency,
 		Subtotal: cart.Subtotal,
 		Shipping: 0,
 		Discount: 0,
 		Total:    cart.Subtotal,
+		Currency: currency.Code,
 	}
 
 	// Todo:: setup checkout_session allowing user to checkout selected items from cart
@@ -100,7 +107,6 @@ func (o *orderService) CreateOrder(ctx context.Context, user *model.User) (*mode
 			VariantID:  i.Variant.ID,
 			SKU:        i.Variant.SKU,
 			UnitPrice:  *i.Variant.PriceAmount,
-			Currency:   i.Variant.Currency,
 			Quantity:   i.Quantity,
 			Attributes: json.RawMessage(attrsJSON),
 		}

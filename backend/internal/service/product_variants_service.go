@@ -13,13 +13,13 @@ type ProductVariantsService interface {
 
 type productVariantsService struct {
 	proVariantsRepo repo.ProductVariantsRepo
-	productFileRepo repo.ProductFileRepo
+	//productFileRepo repo.ProductFileRepo
 }
 
 func NewProductVariantsService(proVariantsRepo repo.ProductVariantsRepo, productFileRepo repo.ProductFileRepo) ProductVariantsService {
 	return &productVariantsService{
 		proVariantsRepo: proVariantsRepo,
-		productFileRepo: productFileRepo,
+		//productFileRepo: productFileRepo,
 	}
 }
 

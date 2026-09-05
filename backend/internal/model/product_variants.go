@@ -14,14 +14,12 @@ type ProductVariant struct {
 	ID                       uint                     `db:"id" json:"id"`
 	ProductID                uint                     `db:"product_id" json:"product_id"`
 	SKU                      string                   `db:"sku" json:"sku"`
-	PriceAmount              *float64                 `db:"price_amount" json:"price_amount,omitempty"`
-	Currency                 string                   `db:"currency" json:"currency"`
-	IsActive                 bool                     `db:"is_active" json:"is_active"`
+	PriceAmount              *uint64                  `db:"price_amount" json:"price_amount,omitempty"`
+	StockQty                 uint                     `db:"stock_qty" json:"stock_quantity"`
+	ReservedQty              uint                     `db:"reserved_qty" json:"reserved_quantity"`
 	CreatedAt                time.Time                `db:"created_at" json:"created_at"`
 	UpdatedAt                time.Time                `db:"updated_at" json:"updated_at"`
 	DeletedAt                *time.Time               `db:"deleted_at" json:"deleted_at,omitempty"`
-	StockQty                 uint                     `db:"stock_qty" json:"stock_quantity"`
-	ReservedQty              uint                     `db:"reserved_qty" json:"reserved_quantity"`
 	ProductVariantAttributes ProductVariantAttributes `db:"-" json:"product_variant_attributes"`
 	ProductFiles             ProductFiles             `db:"-" json:"files"`
 }

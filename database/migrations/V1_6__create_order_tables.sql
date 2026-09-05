@@ -20,7 +20,6 @@ CREATE TABLE order_items (
 
      sku           TEXT NOT NULL,
      unit_price    NUMERIC(12,2) NOT NULL,
-     currency      CHAR(3) NOT NULL,
      quantity      INT NOT NULL CHECK (quantity > 0),
 
      attributes    JSONB NOT NULL, -- snapshot

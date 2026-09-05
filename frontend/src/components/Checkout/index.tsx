@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useUser } from "@/app/context/UserContext";
 import { clientOrderAddressPut } from "@/lib/api/client";
-import { formatOrderTotal } from "@/lib/format";
+import { formatOrderMoney } from "@/lib/format";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import { getOrderClientSecret } from "@/lib/stripe/clientSecret";
 import { stripePromise } from "@/lib/stripe/stripePromise";
 import type { Order } from "@/types/api/order";
@@ -63,6 +64,7 @@ function PaymentSection({
 }) {
   const stripe = useStripe();
   const elements = useElements();
+  const { currency: siteCurrency } = useSiteConfig();
 
   const billingDetails = {
     name: delivery.fullName.trim(),
@@ -124,7 +126,7 @@ function PaymentSection({
         {submitting
           ? "Processing…"
           : order
-            ? `Pay ${formatOrderTotal(order.total, order.currency)}`
+            ? `Pay ${formatOrderMoney(order.total, order.currency, siteCurrency)}`
             : "Pay"}
       </button>
     </form>

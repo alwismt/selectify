@@ -36,9 +36,14 @@ func (h productHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	idStr := chi.URLParam(r, params.ProductId)
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.ParseUint(idStr, 10, strconv.IntSize)
 	if err != nil {
 		logger.Warnf(ctx, "failed to parse productID: %s", idStr)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if id == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

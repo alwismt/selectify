@@ -10,9 +10,18 @@ import { updateproductDetails } from "@/redux/features/product-details";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Link from "next/link";
+import { productHref } from "@/lib/productPath";
+import { formatMoney } from "@/lib/format";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 
 const ProductItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const { currency } = useSiteConfig();
+  const moneyCurrency =
+    currency ??
+    (item.currency != null && item.minorUnit != null
+      ? { code: item.currency, minorUnit: item.minorUnit }
+      : null);
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -156,12 +165,18 @@ const ProductItem = ({ item }: { item: Product }) => {
         className="font-medium text-dark ease-out duration-200 hover:text-blue mb-1.5"
         onClick={() => handleProductDetails()}
       >
-        <Link href={`/product/${item.slug}`}> {item.title} </Link>
+        <Link href={productHref(item.id, item.slug)}> {item.title} </Link>
       </h3>
 
       <span className="flex items-center gap-2 font-medium text-lg">
-        <span className="text-dark">${item.discountedPrice}</span>
-        <span className="text-dark-4 line-through">${item.price}</span>
+        <span className="text-dark">
+          {moneyCurrency
+            ? formatMoney(item.discountedPrice, moneyCurrency)
+            : "—"}
+        </span>
+        <span className="text-dark-4 line-through">
+          {moneyCurrency ? formatMoney(item.price, moneyCurrency) : "—"}
+        </span>
       </span>
     </div>
   );

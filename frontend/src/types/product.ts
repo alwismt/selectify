@@ -1,14 +1,18 @@
 import { productFileUrl } from "@/lib/api/config";
+import type { SiteCurrency } from "@/types/siteConfig";
 
 export type Product = {
   title: string;
   slug: string;
   reviews?: number;
+  /** Price in minor units (e.g. cents). */
   price: number;
+  /** Discounted price in minor units (e.g. cents). */
   discountedPrice: number;
   id: number;
   description?: string;
   currency?: string;
+  minorUnit?: number;
   imgs?: {
     thumbnails: string[];
     previews: string[];
@@ -32,23 +36,26 @@ export type ApiProduct = {
   name: string;
   description: string;
   slug: string;
-  priceAmount: number;
-  currency: string;
+  price: number;
   isActive: boolean;
   inStock: boolean;
   productFile?: ApiProductFile | null;
 };
 
-export function mapApiProductToProduct(api: ApiProduct): Product {
+export function mapApiProductToProduct(
+  api: ApiProduct,
+  currency?: SiteCurrency | null
+): Product {
   const url = productFileUrl(api.productFile?.file_id);
   return {
     id: api.productId,
     title: api.name,
     slug: api.slug,
     description: api.description,
-    price: api.priceAmount,
-    discountedPrice: api.priceAmount,
-    currency: api.currency,
+    price: api.price,
+    discountedPrice: api.price,
+    currency: currency?.code,
+    minorUnit: currency?.minorUnit,
     reviews: 0,
     imgs: url
       ? {

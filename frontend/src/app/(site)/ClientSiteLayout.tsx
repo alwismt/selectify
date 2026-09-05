@@ -15,16 +15,19 @@ import PreviewSliderModal from "@/components/Common/PreviewSlider";
 import ScrollToTop from "@/components/Common/ScrollToTop";
 import type { User } from "@/types/user";
 import type { UserFile } from "@/types/api/userFile";
+import type { CartResponse } from "@/types/api/cart";
 
 interface ClientSiteLayoutProps {
   initialUser: User | null;
   initialUserFile: UserFile | null;
+  initialCart: CartResponse | null;
   children: React.ReactNode;
 }
 
 export default function ClientSiteLayout({
   initialUser,
   initialUserFile,
+  initialCart,
   children,
 }: ClientSiteLayoutProps) {
   const pathname = usePathname();
@@ -34,7 +37,7 @@ export default function ClientSiteLayout({
     <>
       <ReduxProvider>
         <UserProvider initialUser={initialUser} initialUserFile={initialUserFile}>
-          <CartProvider>
+          <CartProvider initialCart={initialCart}>
             <CartModalProvider>
               <ModalProvider>
               <PreviewSliderProvider>

@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { formatOrderTotal } from "@/lib/format";
+import { formatOrderMoney } from "@/lib/format";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import type { Order } from "@/types/api/order";
 
 type CheckoutOrderSummaryProps = {
@@ -20,9 +21,10 @@ const CheckoutOrderSummary = ({
   variant = "panel",
 }: CheckoutOrderSummaryProps) => {
   const [open, setOpen] = useState(false);
+  const { currency: siteCurrency } = useSiteConfig();
 
   const totalLabel = order
-    ? formatOrderTotal(order.total, order.currency)
+    ? formatOrderMoney(order.total, order.currency, siteCurrency)
     : null;
 
   const lines = (
@@ -46,9 +48,10 @@ const CheckoutOrderSummary = ({
                   {item.quantity > 1 ? ` × ${item.quantity}` : ""}
                 </p>
                 <p className="text-white text-custom-sm text-right shrink-0">
-                  {formatOrderTotal(
+                  {formatOrderMoney(
                     item.unit_price * item.quantity,
-                    item.currency
+                    order.currency,
+                    siteCurrency
                   )}
                 </p>
               </li>
@@ -59,7 +62,7 @@ const CheckoutOrderSummary = ({
             <div className="flex items-center justify-between">
               <p className="text-white/80 text-custom-sm">Subtotal</p>
               <p className="text-white text-custom-sm">
-                {formatOrderTotal(order.subtotal, order.currency)}
+                {formatOrderMoney(order.subtotal, order.currency, siteCurrency)}
               </p>
             </div>
 
@@ -67,7 +70,11 @@ const CheckoutOrderSummary = ({
               <div className="flex items-center justify-between">
                 <p className="text-white/80 text-custom-sm">Shipping</p>
                 <p className="text-white text-custom-sm">
-                  {formatOrderTotal(order.shipping, order.currency)}
+                  {formatOrderMoney(
+                    order.shipping,
+                    order.currency,
+                    siteCurrency
+                  )}
                 </p>
               </div>
             )}
@@ -76,7 +83,12 @@ const CheckoutOrderSummary = ({
               <div className="flex items-center justify-between">
                 <p className="text-white/80 text-custom-sm">Discount</p>
                 <p className="text-white text-custom-sm">
-                  −{formatOrderTotal(order.discount, order.currency)}
+                  −
+                  {formatOrderMoney(
+                    order.discount,
+                    order.currency,
+                    siteCurrency
+                  )}
                 </p>
               </div>
             )}
@@ -84,7 +96,7 @@ const CheckoutOrderSummary = ({
             <div className="flex items-center justify-between pt-2">
               <p className="font-medium text-white">Total due</p>
               <p className="font-medium text-white text-lg">
-                {formatOrderTotal(order.total, order.currency)}
+                {formatOrderMoney(order.total, order.currency, siteCurrency)}
               </p>
             </div>
           </div>

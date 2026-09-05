@@ -3,6 +3,8 @@ export const API_PATHS = {
   order: "/order",
   orders: "/orders",
   products: "/products",
+  categories: "/categories",
+  config: "/config",
   cart: "/cart",
   cartItems: "/cart/items",
   authLogin: "/auth/login",
@@ -15,11 +17,20 @@ export const API_PATHS = {
   merchant: "/merchant",
   merchantLogo: "/merchant/logo",
   merchantCountries: "/merchant/countries",
+  merchantProducts: "/merchant/products",
   logout: "/logout",
 } as const;
 
-export function productBySlug(slug: string): string {
-  return `/products/${slug}`;
+export function merchantProduct(productId: number): string {
+  return `/merchant/products/${productId}`;
+}
+
+export function merchantProductVariants(productId: number): string {
+  return `/merchant/products/${productId}/variants`;
+}
+
+export function productById(productId: number): string {
+  return `/products/${productId}`;
 }
 
 export function productVariants(productId: number): string {

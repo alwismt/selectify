@@ -104,7 +104,6 @@ func (cs *cartService) GetCartItems(ctx context.Context, s *model.User) (*respon
 	if len(crItems) == 0 {
 		return &response.CartResponse{
 			Items:     []response.CartItem{},
-			Currency:  "",
 			Subtotal:  0,
 			ItemCount: 0,
 		}, nil
@@ -164,8 +163,7 @@ func (cs *cartService) GetCartItems(ctx context.Context, s *model.User) (*respon
 func (cs *cartService) buildCartResponse(crItems model.CartItems, variantMap map[uint]*model.ProductVariant, productMap map[uint]*model.Product,
 ) *response.CartResponse {
 	items := make([]response.CartItem, 0, len(crItems))
-	var subtotal float64
-	var currency string
+	var subtotal uint64
 	itemCount := uint(len(crItems))
 
 	for _, cartItem := range crItems {
@@ -184,22 +182,17 @@ func (cs *cartService) buildCartResponse(crItems model.CartItems, variantMap map
 			attributes[attr.Name] = attr.Value
 		}
 
-		if currency == "" {
-			currency = variant.Currency
-		}
-
-		var itemPrice float64
+		var itemPrice uint64
 		if variant.PriceAmount != nil {
 			itemPrice = *variant.PriceAmount
 		}
-		subtotal += itemPrice * float64(cartItem.Quantity)
+		subtotal += itemPrice * uint64(cartItem.Quantity)
 
 		availableQty := variant.StockQty - variant.ReservedQty
 		respVariant := response.ProductVariant{
 			ID:          variant.ID,
 			SKU:         variant.SKU,
 			PriceAmount: variant.PriceAmount,
-			Currency:    variant.Currency,
 			Attributes:  attributes,
 			Product: response.Product{
 				ID:          product.ID,
@@ -218,7 +211,6 @@ func (cs *cartService) buildCartResponse(crItems model.CartItems, variantMap map
 
 	return &response.CartResponse{
 		Items:     items,
-		Currency:  currency,
 		Subtotal:  subtotal,
 		ItemCount: itemCount,
 	}

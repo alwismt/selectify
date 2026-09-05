@@ -1,14 +1,24 @@
+"use client";
+
 import React from "react";
 import { AppDispatch } from "@/redux/store";
 import { useDispatch } from "react-redux";
 
 import { removeItemFromWishlist } from "@/redux/features/wishlist-slice";
 import { addItemToCart } from "@/redux/features/cart-slice";
+import { formatMoney } from "@/lib/format";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 
 import Image from "next/image";
 
 const SingleItem = ({ item }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const { currency } = useSiteConfig();
+  const moneyCurrency =
+    currency ??
+    (item.currency != null && item.minorUnit != null
+      ? { code: item.currency, minorUnit: item.minorUnit }
+      : null);
 
   const handleRemoveFromWishlist = () => {
     dispatch(removeItemFromWishlist(item.id));
@@ -70,7 +80,11 @@ const SingleItem = ({ item }) => {
       </div>
 
       <div className="min-w-[205px]">
-        <p className="text-dark">${item.discountedPrice}</p>
+        <p className="text-dark">
+          {moneyCurrency
+            ? formatMoney(item.discountedPrice, moneyCurrency)
+            : "—"}
+        </p>
       </div>
 
       <div className="min-w-[265px]">
