@@ -4,9 +4,9 @@ CREATE TABLE product (
 
     name            TEXT NOT NULL,
     description     TEXT,
-    slug            TEXT UNIQUE,
+    slug            TEXT NOT NULL,
 
-    price_amount    NUMERIC(12,2) NOT NULL,
+    price_amount    BIGINT NOT NULL,
     currency        TEXT NOT NULL DEFAULT 'EUR',
 
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,

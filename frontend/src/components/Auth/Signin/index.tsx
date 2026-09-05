@@ -6,8 +6,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
 import { API_PATHS } from "@/lib/api/config";
-import { clientFetch, apiClientGet } from "@/lib/api/client";
-import type { User } from "@/types/user";
+import { clientFetch } from "@/lib/api/client";
 
 type SigninProps = {
   resetSuccess?: boolean;
@@ -15,7 +14,7 @@ type SigninProps = {
 };
 
 const Signin = ({ resetSuccess = false, sessionExpired = false }: SigninProps) => {
-  const { user, setUser } = useUser();
+  const { user } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,9 +48,9 @@ const Signin = ({ resetSuccess = false, sessionExpired = false }: SigninProps) =
       });
       const data = (await res.json()) as { status?: string; message?: string };
       if (res.ok && data.status === "ok") {
-        const loggedInUser = await apiClientGet<User>(API_PATHS.userInfo);
-        setUser(loggedInUser);
+        // Layout SSR re-fetches user + cart; UserProvider/CartProvider sync from props.
         router.replace("/");
+        router.refresh();
         return;
       }
       setError(

@@ -15,7 +15,6 @@ func (r *UpdateMerchantRequest) Empty() bool {
 }
 
 func (r *UpdateMerchantRequest) Sanitize() {
-
 	if r.Name != nil {
 		v := strings.TrimSpace(*r.Name)
 		r.Name = &v
@@ -28,5 +27,4 @@ func (r *UpdateMerchantRequest) Sanitize() {
 		v := strings.ToUpper(strings.TrimSpace(*r.CountryCode))
 		r.CountryCode = &v
 	}
-
 }

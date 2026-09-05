@@ -1,11 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Breadcrumb from "../Common/Breadcrumb";
 import Image from "next/image";
 import Newsletter from "../Common/Newsletter";
 import RecentlyViewdItems from "./RecentlyViewd";
 import { usePreviewSlider } from "@/app/context/PreviewSliderContext";
-import { useCart } from "@/app/context/CartContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useAppSelector } from "@/redux/store";
 import type { AppDispatch } from "@/redux/store";
@@ -15,7 +15,9 @@ import { Product } from "@/types/product";
 import { apiClientPost } from "@/lib/api/client";
 import { API_PATHS, productFileUrl } from "@/lib/api/config";
 import { formatMoney } from "@/lib/format";
+import { availableVariantQuantity } from "@/types/api/variant";
 import type { ApiVariant } from "@/types/api/variant";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 
 type ShopDetailsProps = {
   initialProduct?: Product | null;
@@ -63,7 +65,7 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
   const [activeColor, setActiveColor] = useState("blue");
   const { openPreviewModal } = usePreviewSlider();
   const dispatch = useDispatch<AppDispatch>();
-  const { refetch: refetchCart } = useCart();
+  const router = useRouter();
   const { openCartModal } = useCartModalContext();
   const [previewOverride, setPreviewOverride] = useState<number | null>(null);
 
@@ -96,18 +98,23 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
     [variants, selectedAttributes]
   );
 
-  const canAddToCart = selectedVariant != null && selectedVariant.stock_quantity > 0;
+  const { currency } = useSiteConfig();
+  const availableQty = selectedVariant
+    ? availableVariantQuantity(selectedVariant)
+    : 0;
+  const canAddToCart = selectedVariant != null && availableQty > 0;
 
   const handleAddToCart = async () => {
     if (!selectedVariant || !canAddToCart) return;
     setAddToCartLoading(true);
     setAddToCartError(null);
     try {
+      const qty = Math.min(Math.max(1, quantity), availableQty);
       await apiClientPost(API_PATHS.cartItems, {
-        quantity: Math.max(1, quantity),
+        quantity: qty,
         variant_id: selectedVariant.id,
       });
-      await refetchCart();
+      router.refresh();
       openCartModal();
     } catch (err) {
       setAddToCartError(err instanceof Error ? err.message : "Add to cart failed");
@@ -478,13 +485,15 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
                     {variants.length > 0 && selectedVariant ? (
                       <span className="text-sm sm:text-base text-dark">
                         Price:{" "}
-                        {formatMoney(
-                          selectedVariant.price_amount,
-                          selectedVariant.currency
-                        )}
-                        {selectedVariant.stock_quantity > 0 && (
+                        {currency
+                          ? formatMoney(
+                              selectedVariant.price_amount,
+                              currency
+                            )
+                          : "—"}
+                        {availableQty > 0 && (
                           <span className="text-green ml-2">
-                            ({selectedVariant.stock_quantity} in stock)
+                            ({availableQty} in stock)
                           </span>
                         )}
                       </span>
@@ -492,15 +501,16 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
                       <>
                         <span className="text-sm sm:text-base text-dark">
                           Price:{" "}
-                          {formatMoney(product.price, product.currency)}
+                          {currency
+                            ? formatMoney(product.price, currency)
+                            : "—"}
                         </span>
                         {product.discountedPrice < product.price && (
                           <span className="line-through">
                             {" "}
-                            {formatMoney(
-                              product.discountedPrice,
-                              product.currency
-                            )}{" "}
+                            {currency
+                              ? formatMoney(product.discountedPrice, currency)
+                              : "—"}{" "}
                           </span>
                         )}
                       </>
@@ -872,7 +882,16 @@ const ShopDetails = ({ initialProduct, variants = [] }: ShopDetailsProps) => {
                         </span>
 
                         <button
-                          onClick={() => setQuantity(quantity + 1)}
+                          onClick={() =>
+                            setQuantity((q) =>
+                              availableQty > 0
+                                ? Math.min(q + 1, availableQty)
+                                : q + 1
+                            )
+                          }
+                          disabled={
+                            availableQty > 0 && quantity >= availableQty
+                          }
                           aria-label="button for add product"
                           className="flex items-center justify-center w-12 h-12 ease-out duration-200 hover:text-blue"
                         >

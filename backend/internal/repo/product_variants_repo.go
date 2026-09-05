@@ -46,8 +46,6 @@ func (r *productVariantsRepo) GetVariantsForProduct(ctx context.Context, product
 			v.product_id,
 			v.sku,
 			v.price_amount,
-			v.currency,
-			v.is_active,
 			v.created_at,
 			v.updated_at,
 			v.deleted_at,
@@ -99,8 +97,6 @@ func (r *productVariantsRepo) GetVariantsForProduct(ctx context.Context, product
 
 		WHERE v.product_id = $1
 		  AND v.deleted_at IS NULL
-		  AND v.is_active = TRUE
-
 		ORDER BY v.id;
 	`
 
@@ -155,7 +151,7 @@ func (r *productVariantsRepo) GetVariantsForProduct(ctx context.Context, product
 }
 
 func (r *productVariantsRepo) GetVariantsByID(ctx context.Context, variantId uint) (*model.ProductVariant, error) {
-	const q = `SELECT v.id, v.product_id, v.sku, v.price_amount, v.currency, v.is_active, v.created_at, v.updated_at, v.deleted_at,
+	const q = `SELECT v.id, v.product_id, v.sku, v.price_amount, v.created_at, v.updated_at, v.deleted_at,
 		v.stock_qty, v.reserved_qty,
 		COALESCE(
 			json_agg(
@@ -173,8 +169,7 @@ func (r *productVariantsRepo) GetVariantsByID(ctx context.Context, variantId uin
 	WHERE v.id = $1
 	AND v.deleted_at IS NULL
 	GROUP BY
-	v.id, v.product_id, v.sku, v.price_amount, v.currency,
-		v.is_active, v.created_at, v.updated_at, v.deleted_at,
+	v.id, v.product_id, v.sku, v.price_amount, v.created_at, v.updated_at, v.deleted_at,
 		v.stock_qty, v.reserved_qty;`
 
 	var row variantRow
@@ -196,11 +191,10 @@ func (r *productVariantsRepo) GetVariantsByIDs(ctx context.Context, variantIDs [
 		return variants, nil
 	}
 
-	q := `SELECT id, product_id, sku, price_amount, currency, is_active, created_at, updated_at, deleted_at, stock_qty, reserved_qty
+	q := `SELECT id, product_id, sku, price_amount, created_at, updated_at, deleted_at, stock_qty, reserved_qty
 		FROM product_variants
 		WHERE id = ANY($1)
-		  AND deleted_at IS NULL
-		  AND is_active = true;`
+		  AND deleted_at IS NULL;`
 
 	if err := r.roDb.SelectContext(ctx, &variants, q, pq.Array(variantIDs)); err != nil {
 		return nil, logger.Errorf(ctx, err, "failed to get product variants by ids: %v", variantIDs)

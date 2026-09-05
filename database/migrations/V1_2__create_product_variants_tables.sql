@@ -1,14 +1,8 @@
 CREATE TABLE product_variants (
     id            BIGSERIAL PRIMARY KEY,
     product_id    BIGINT NOT NULL REFERENCES product(product_id) ON DELETE CASCADE,
-
     sku           TEXT UNIQUE NOT NULL,
-
-    price_amount  NUMERIC(12,2),
-    currency      TEXT NOT NULL DEFAULT 'EUR',
-
-    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-
+    price_amount  BIGINT NOT NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at    TIMESTAMPTZ

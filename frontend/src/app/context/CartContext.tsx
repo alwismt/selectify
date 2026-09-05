@@ -1,88 +1,48 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useUser } from "@/app/context/UserContext";
-import { apiClientGet } from "@/lib/api/client";
-import { API_PATHS } from "@/lib/api/config";
 import type { CartResponse } from "@/types/api/cart";
 
 type CartContextValue = {
   cart: CartResponse | null;
   loading: boolean;
   error: Error | null;
-  refetch: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+interface CartProviderProps {
+  initialCart?: CartResponse | null;
+  children: React.ReactNode;
+}
+
+/**
+ * Hydrate-only cart state from SSR (`getServerCart` in site/merchant layouts).
+ * After mutations, callers should `router.refresh()` so the layout re-fetches.
+ */
+export function CartProvider({
+  initialCart = null,
+  children,
+}: CartProviderProps) {
   const { user } = useUser();
   const userId = user?.id;
-  const [cart, setCart] = useState<CartResponse | null>(null);
-  const [loading, setLoading] = useState(!!userId);
-  const [error, setError] = useState<Error | null>(null);
-  const [prevUserId, setPrevUserId] = useState(userId);
-
-  if (userId !== prevUserId) {
-    setPrevUserId(userId);
-    setLoading(!!userId);
-    setError(null);
-  }
-
-  const refetch = useCallback(async () => {
-    if (!userId) {
-      setCart(null);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await apiClientGet<CartResponse>(API_PATHS.cart);
-      setCart(data);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-      setCart(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
+  const [cart, setCart] = useState<CartResponse | null>(
+    userId ? initialCart : null
+  );
 
   useEffect(() => {
     if (!userId) {
       setCart(null);
-      setLoading(false);
-      setError(null);
-      return;
+    } else {
+      setCart(initialCart ?? null);
     }
-
-    let cancelled = false;
-    apiClientGet<CartResponse>(API_PATHS.cart)
-      .then((data) => {
-        if (cancelled) return;
-        setCart(data);
-        setError(null);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err : new Error(String(err)));
-        setCart(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+  }, [userId, initialCart]);
 
   const value: CartContextValue = {
-    cart,
-    loading,
-    error,
-    refetch,
+    cart: userId ? cart : null,
+    loading: false,
+    error: null,
   };
 
   return (

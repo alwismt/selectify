@@ -14,8 +14,6 @@ import (
 	"alwis.dev/selectify/internal/model"
 )
 
-const maxProfileImageSize = 5 << 20
-
 func (c *controller) GetMerchant(w http.ResponseWriter, r *http.Request, _ *model.LoggedInSession, merchant *model.Merchant) {
 	if err := httpx.SendJson(w, http.StatusOK, merchant); err != nil {
 		_ = logger.Error(r.Context(), err, "Failed to send response")
@@ -63,7 +61,7 @@ func (c *controller) UpdateMerchant(w http.ResponseWriter, r *http.Request, _ *m
 }
 
 func (c *controller) UpdateMerchantLogo(w http.ResponseWriter, r *http.Request, _ *model.LoggedInSession, merchant *model.Merchant) {
-	file, err := controller_utils.GetMultiPartFile(r, "image", maxProfileImageSize, "image")
+	file, err := controller_utils.GetMultiPartFile(r, "image", controller_utils.MaxProfileImageSize, "image")
 	if err != nil {
 		_ = logger.Error(r.Context(), err, "image is required")
 		httpx.SendError(w, err)

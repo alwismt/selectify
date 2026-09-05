@@ -13,13 +13,20 @@ export type ApiVariant = {
   id: number;
   product_id: number;
   sku: string;
+  /** Price in integer minor units. */
   price_amount: number;
-  currency: string;
-  is_active: boolean;
   created_at: string;
   updated_at: string;
   stock_quantity: number;
   reserved_quantity: number;
   product_variant_attributes: ApiVariantAttribute[];
-  files?: ApiProductFile[];
+  files: ApiProductFile[];
 };
+
+/** Available sellable quantity for a variant. */
+export function availableVariantQuantity(variant: {
+  stock_quantity: number;
+  reserved_quantity: number;
+}): number {
+  return Math.max(0, variant.stock_quantity - variant.reserved_quantity);
+}

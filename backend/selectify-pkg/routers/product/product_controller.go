@@ -19,13 +19,13 @@ func (c *controller) GetProductById(w http.ResponseWriter, r *http.Request, prod
 	product, err = c.productService.GetProductFileByProductID(ctx, product)
 	if err != nil {
 		_ = logger.Error(ctx, err, "failed to fetch product file")
-		httpx.SendError(w, err)
+		httpx.SendError(w, httpx.ErrBadRequest)
 		return
 	}
 
-	if err := httpx.NewJsonSender(product, http.StatusOK).Send(w); err != nil {
+	if err = httpx.NewJsonSender(product, http.StatusOK).Send(w); err != nil {
 		_ = logger.Error(ctx, err, "failed to send response")
-		httpx.SendError(w, err)
+		httpx.SendError(w, httpx.ErrBadRequest)
 	}
 	return
 }
@@ -35,47 +35,46 @@ var slugRegex = regexp.MustCompile(`^[a-z0-9-]+$`)
 func (c *controller) GetProductBySlug(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	slug := chi.URLParam(r, params.ProductSlug)
+	slug := chi.URLParam(r, params.ProductPath)
 	if slug == "" {
-		err := logger.Error(ctx, errors.New("failed to get product url"), "url is required")
-		httpx.SendError(w, err)
+		_ = logger.Error(ctx, errors.New("failed to get product url"), "url is required")
+		httpx.SendError(w, httpx.ErrBadRequest)
 		return
 	}
 
 	// validate slug
 	if !slugRegex.MatchString(slug) {
-		err := logger.Error(ctx, errors.New("invalid url format"), "invalid url")
-		httpx.SendError(w, err)
+		_ = logger.Error(ctx, errors.New("invalid url format"), "invalid url")
+		httpx.SendError(w, httpx.ErrBadRequest)
 		return
 	}
 
 	product, err := c.productService.GetProductBySlug(ctx, slug)
 	if err != nil {
-		err = logger.Error(ctx, err, "failed to fetch product")
-		httpx.SendError(w, err)
+		_ = logger.Error(ctx, err, "failed to fetch product")
+		httpx.SendError(w, httpx.ErrBadRequest)
 		return
 	}
 
 	if err = httpx.NewJsonSender(product, http.StatusOK).Send(w); err != nil {
 		_ = logger.Error(ctx, err, "failed to send response")
-		httpx.SendError(w, err)
+		httpx.SendError(w, httpx.ErrBadRequest)
 	}
 }
 
 // GetProducts Todo:: ?search=&category_id=&min_price=&max_price=&sort=&page=&limit=
 func (c *controller) GetProducts(w http.ResponseWriter, r *http.Request) {
-	httpx.ClientIP(r)
 	ctx := r.Context()
 	products, err := c.productService.GetProducts(ctx)
 	if err != nil {
 		_ = logger.Error(ctx, err, "Failed to get products")
-		httpx.SendError(w, err)
+		httpx.SendError(w, httpx.ErrBadRequest)
 		return
 	}
 
 	if err = httpx.NewJsonSender(products, http.StatusOK).Send(w); err != nil {
 		_ = logger.Error(ctx, err, "failed to send response")
-		httpx.SendError(w, err)
+		httpx.SendError(w, httpx.ErrBadRequest)
 	}
 
 	return

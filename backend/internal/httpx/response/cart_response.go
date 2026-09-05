@@ -2,8 +2,7 @@ package response
 
 type CartResponse struct {
 	Items     []CartItem `json:"items"`
-	Currency  string     `json:"currency"`
-	Subtotal  float64    `json:"subtotal"`
+	Subtotal  uint64     `json:"subtotal"`
 	ItemCount uint       `json:"item_count"`
 }
 
@@ -16,8 +15,7 @@ type CartItem struct {
 type ProductVariant struct {
 	ID          uint              `json:"id"`
 	SKU         string            `json:"sku"`
-	PriceAmount *float64          `json:"price_amount,omitempty"`
-	Currency    string            `json:"currency"`
+	PriceAmount *uint64           `json:"price_amount,omitempty"`
 	Attributes  map[string]string `json:"attributes"`
 	Product     Product           `json:"product"`
 	StockQty    uint              `json:"available_qty"`

@@ -1,6 +1,7 @@
 import { getServerUser } from "@/lib/api/getServerUser";
 import { getServerUserFile } from "@/lib/api/getServerUserFile";
 import { getServerMerchant } from "@/lib/api/getServerMerchant";
+import { getServerCart } from "@/lib/api/getServerCart";
 import { redirect } from "next/navigation";
 import ClientMerchantLayout from "./ClientMerchantLayout";
 
@@ -22,7 +23,10 @@ export default async function MerchantLayout({
     redirect("/");
   }
 
-  const initialMerchant = await getServerMerchant();
+  const [initialMerchant, initialCart] = await Promise.all([
+    getServerMerchant(),
+    getServerCart(),
+  ]);
   if (!initialMerchant) {
     redirect("/");
   }
@@ -32,6 +36,7 @@ export default async function MerchantLayout({
       initialUser={initialUser}
       initialUserFile={initialUserFile}
       initialMerchant={initialMerchant}
+      initialCart={initialCart}
     >
       {children}
     </ClientMerchantLayout>

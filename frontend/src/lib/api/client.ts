@@ -13,17 +13,6 @@ function maybeHandleUnauthorized(path: string, status: number): void {
   }
 }
 
-/** Same-origin GET /api/orders (proxy). Hides backend URL. */
-export async function clientOrdersGet(): Promise<Order[]> {
-  const res = await fetch("/api/orders", { method: "GET", credentials: "include" });
-  if (!res.ok) {
-    maybeHandleUnauthorized("/orders", res.status);
-    throw new Error(`API error ${res.status}: ${res.statusText}`);
-  }
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
-
 /** Same-origin POST /api/orders (proxy). Hides backend URL. */
 export async function clientOrdersPost(body?: unknown): Promise<Order> {
   const res = await fetch("/api/orders", {

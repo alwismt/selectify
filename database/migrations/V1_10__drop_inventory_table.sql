@@ -10,4 +10,4 @@ ALTER TABLE product_variants
 
 CREATE INDEX idx_product_variants_available
     ON product_variants (id)
-    WHERE is_active = true AND deleted_at IS NULL;
+    WHERE stock_qty > 0 AND deleted_at IS NULL;

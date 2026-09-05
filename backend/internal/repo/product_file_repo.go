@@ -17,6 +17,7 @@ type productFileRepo struct {
 
 type ProductFileRepo interface {
 	GetProductFileByProductID(ctx context.Context, proID uint) (productFile *model.ProductFile, err error)
+	CreateProductFileWithTx(ctx context.Context, tx *sqlx.Tx, productFile *model.ProductFile) error
 }
 
 func NewProductFileRepo(db *db.DatabaseConnection) ProductFileRepo {
@@ -37,4 +38,17 @@ func (r *productFileRepo) GetProductFileByProductID(ctx context.Context, proID u
 	}
 
 	return &productFile, nil
+}
+
+func (r *productFileRepo) CreateProductFileWithTx(ctx context.Context, tx *sqlx.Tx, productFile *model.ProductFile) error {
+	query := `INSERT INTO product_file (product_file_id, product_id, variant_id, position, content_type, is_primary) 
+	VALUES ($1, $2, $3, $4, $5, $6)`
+
+	_, err := tx.ExecContext(ctx, query,
+		productFile.FileID, productFile.ProductID, productFile.VariantID,
+		productFile.Position, productFile.ContentType, productFile.IsPrimary)
+	if err != nil {
+		return logger.Errorf(ctx, err, "error creating product file")
+	}
+	return nil
 }

@@ -26,6 +26,12 @@ var (
 
 // SendError return http.StatusBadRequest with an error message
 func SendError(w http.ResponseWriter, err error) {
+	if err == nil {
+		if nErr := SendJson(w, http.StatusBadRequest, nil); nErr != nil {
+			_ = logger.Error(context.Background(), nErr, "Failed to send json response")
+		}
+		return
+	}
 	if nErr := SendJson(w, http.StatusBadRequest, &StatusResponse{Status: "error", Message: err.Error()}); nErr != nil {
 		_ = logger.Error(context.Background(), nErr, "Failed to send json response")
 	}

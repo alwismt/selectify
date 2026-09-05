@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { AppDispatch } from "@/redux/store";
 import { useDispatch } from "react-redux";
@@ -5,11 +7,19 @@ import {
   removeItemFromCart,
   updateCartItemQuantity,
 } from "@/redux/features/cart-slice";
+import { formatMoney } from "@/lib/format";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 
 import Image from "next/image";
 
 const SingleItem = ({ item }) => {
   const [quantity, setQuantity] = useState(item.quantity);
+  const { currency } = useSiteConfig();
+  const moneyCurrency =
+    currency ??
+    (item.currency != null && item.minorUnit != null
+      ? { code: item.currency, minorUnit: item.minorUnit }
+      : null);
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -50,7 +60,11 @@ const SingleItem = ({ item }) => {
       </div>
 
       <div className="min-w-[180px]">
-        <p className="text-dark">${item.discountedPrice}</p>
+        <p className="text-dark">
+          {moneyCurrency
+            ? formatMoney(item.discountedPrice, moneyCurrency)
+            : "—"}
+        </p>
       </div>
 
       <div className="min-w-[275px]">
@@ -106,7 +120,11 @@ const SingleItem = ({ item }) => {
       </div>
 
       <div className="min-w-[200px]">
-        <p className="text-dark">${item.discountedPrice * quantity}</p>
+        <p className="text-dark">
+          {moneyCurrency
+            ? formatMoney(item.discountedPrice * quantity, moneyCurrency)
+            : "—"}
+        </p>
       </div>
 
       <div className="min-w-[50px] flex justify-end">

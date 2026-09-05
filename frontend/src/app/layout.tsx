@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./css/euclid-circular-a-font.css";
 import "./css/style.css";
+import { getServerSiteConfig } from "@/lib/api/getServerSiteConfig";
+import { SiteConfigProvider } from "@/app/context/SiteConfigContext";
 
 const siteName = "NextCommerce";
 const defaultTitle = "NextCommerce | Nextjs E-commerce template";
@@ -29,14 +31,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const initialConfig = await getServerSiteConfig();
+
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <SiteConfigProvider initialConfig={initialConfig}>
+          {children}
+        </SiteConfigProvider>
+      </body>
     </html>
   );
 }

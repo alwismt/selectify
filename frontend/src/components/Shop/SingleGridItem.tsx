@@ -10,13 +10,20 @@ import { AppDispatch } from "@/redux/store";
 import Link from "next/link";
 import Image from "next/image";
 import { formatMoney } from "@/lib/format";
+import { productHref } from "@/lib/productPath";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 
 const SingleGridItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const { currency } = useSiteConfig();
 
   const dispatch = useDispatch<AppDispatch>();
 
-  // update the QuickView state
+  const moneyCurrency =
+    currency ??
+    (item.currency != null && item.minorUnit != null
+      ? { code: item.currency, minorUnit: item.minorUnit }
+      : null);
   const handleQuickViewUpdate = () => {
     dispatch(updateQuickView({ ...item }));
   };
@@ -159,16 +166,18 @@ const SingleGridItem = ({ item }: { item: Product }) => {
       </div>
 
       <h3 className="font-medium text-dark ease-out duration-200 hover:text-blue mb-1.5">
-        <Link href={`/product/${item.slug}`}> {item.title} </Link>
+        <Link href={productHref(item.id, item.slug)}> {item.title} </Link>
       </h3>
 
       <span className="flex items-center gap-2 font-medium text-lg">
         <span className="text-dark">
-          {formatMoney(item.discountedPrice, item.currency)}
+          {moneyCurrency
+            ? formatMoney(item.discountedPrice, moneyCurrency)
+            : "—"}
         </span>
         {hasDiscount && (
           <span className="text-dark-4 line-through">
-            {formatMoney(item.price, item.currency)}
+            {moneyCurrency ? formatMoney(item.price, moneyCurrency) : "—"}
           </span>
         )}
       </span>

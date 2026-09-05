@@ -62,7 +62,7 @@ func (or *orderRepo) CreateOrderItems(ctx context.Context, tx *sqlx.Tx, items mo
 	}
 
 	base := `INSERT INTO order_items (
-		order_id, variant_id, sku, unit_price, currency, quantity, attributes
+		order_id, variant_id, sku, unit_price, quantity, attributes
 	) VALUES %s RETURNING id, created_at;`
 
 	valueStrings := make([]string, 0, len(items))
@@ -81,7 +81,6 @@ func (or *orderRepo) CreateOrderItems(ctx context.Context, tx *sqlx.Tx, items mo
 			it.VariantID,
 			it.SKU,
 			it.UnitPrice,
-			it.Currency,
 			it.Quantity,
 			it.Attributes,
 		)

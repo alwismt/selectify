@@ -3,19 +3,19 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
+import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import { clientOrdersPost } from "@/lib/api/client";
 import { setOrderClientSecret } from "@/lib/stripe/clientSecret";
-
-const currencySymbol = (currency: string) => (currency === "EUR" ? "€" : "$");
+import { formatMoney } from "@/lib/format";
 
 const OrderSummary = () => {
   const router = useRouter();
-  const { cart, refetch } = useCart();
+  const { cart } = useCart();
+  const { currency } = useSiteConfig();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cartItems = cart?.items ?? [];
   const subtotal = cart?.subtotal ?? 0;
-  const currency = cart?.currency ?? "EUR";
   const hasItems = cartItems.length > 0;
 
   const handleProceedToCheckout = async () => {
@@ -32,8 +32,8 @@ const OrderSummary = () => {
         return;
       }
       setOrderClientSecret(data.id, data.client_secret);
-      await refetch?.();
       router.push(`/checkout?orderId=${data.id}`);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create order. Please try again.");
     } finally {
@@ -43,14 +43,12 @@ const OrderSummary = () => {
 
   return (
     <div className="lg:max-w-[455px] w-full">
-      {/* <!-- order list box --> */}
       <div className="bg-white shadow-1 rounded-[10px]">
         <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
           <h3 className="font-medium text-xl text-dark">Order Summary</h3>
         </div>
 
         <div className="pt-2.5 pb-8.5 px-4 sm:px-8.5">
-          {/* <!-- title --> */}
           <div className="flex items-center justify-between py-5 border-b border-gray-3">
             <div>
               <h4 className="font-medium text-dark">Product</h4>
@@ -60,7 +58,6 @@ const OrderSummary = () => {
             </div>
           </div>
 
-          {/* <!-- product item --> */}
           {cartItems.map((item) => (
             <div key={item.id} className="flex items-center justify-between py-5 border-b border-gray-3">
               <div>
@@ -68,27 +65,28 @@ const OrderSummary = () => {
               </div>
               <div>
                 <p className="text-dark text-right">
-                  {currencySymbol(item.variant.currency)}
-                  {(item.variant.price_amount * item.quantity).toFixed(2)}
+                  {currency
+                    ? formatMoney(
+                        item.variant.price_amount * item.quantity,
+                        currency
+                      )
+                    : "—"}
                 </p>
               </div>
             </div>
           ))}
 
-          {/* <!-- total --> */}
           <div className="flex items-center justify-between pt-5">
             <div>
               <p className="font-medium text-lg text-dark">Total</p>
             </div>
             <div>
               <p className="font-medium text-lg text-dark text-right">
-                {currencySymbol(currency)}
-                {subtotal.toFixed(2)}
+                {currency ? formatMoney(subtotal, currency) : "—"}
               </p>
             </div>
           </div>
 
-          {/* <!-- checkout button --> */}
           {error && (
             <p className="text-red text-custom-sm mt-2 mb-2">{error}</p>
           )}

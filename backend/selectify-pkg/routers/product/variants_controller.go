@@ -14,12 +14,12 @@ func (c *controller) GetVariantsForProduct(w http.ResponseWriter, r *http.Reques
 	variants, err := c.productVariantsService.GetProVariantsForProduct(ctx, product)
 	if err != nil {
 		_ = logger.Error(ctx, err, "Failed to get product variants")
-		httpx.SendError(w, err)
+		httpx.SendError(w, httpx.ErrBadRequest)
 		return
 	}
 
 	if err = httpx.NewJsonSender(variants, http.StatusOK).Send(w); err != nil {
 		_ = logger.Error(ctx, err, "failed to send response")
-		httpx.SendError(w, err)
+		httpx.SendError(w, httpx.ErrBadRequest)
 	}
 }

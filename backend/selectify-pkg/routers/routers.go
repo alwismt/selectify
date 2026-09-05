@@ -8,6 +8,8 @@ import (
 	"alwis.dev/selectify/internal/middleware"
 	"alwis.dev/selectify/selectify-pkg/routers/auth"
 	"alwis.dev/selectify/selectify-pkg/routers/cart"
+	"alwis.dev/selectify/selectify-pkg/routers/category"
+	"alwis.dev/selectify/selectify-pkg/routers/config"
 	"alwis.dev/selectify/selectify-pkg/routers/order"
 	"alwis.dev/selectify/selectify-pkg/routers/product"
 	"alwis.dev/selectify/selectify-pkg/routers/status"
@@ -26,12 +28,14 @@ func CreateHandler() http.Handler {
 }
 
 func registerRoutes(r chi.Router) {
+	config.Register(r)
 	status.Register(r)
 	product.Register(r)
 	auth.Register(r)
 	user.Register(r)
 	cart.Register(r)
 	order.Register(r)
+	category.Register(r)
 }
 
 func registerHandlers(h http.Handler) http.Handler {

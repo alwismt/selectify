@@ -4,6 +4,7 @@ export type OrderItem = {
   order_id: number;
   variant_id: number;
   sku: string;
+  /** Unit price in integer minor units. */
   unit_price: number;
   currency: string;
   quantity: number;
@@ -11,7 +12,11 @@ export type OrderItem = {
   created_at: string;
 };
 
-/** Order (GET array element or POST response) */
+/**
+ * Order (GET array element or POST response).
+ * Monetary fields (subtotal, shipping, discount, total, unit_price) are integer minor units.
+ * `currency` is a financial snapshot — format with order.currency, not a later site currency.
+ */
 export type Order = {
   id: number;
   user_id: number;
