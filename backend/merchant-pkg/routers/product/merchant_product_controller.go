@@ -40,7 +40,7 @@ func (c *controller) GetProductByID(w http.ResponseWriter, r *http.Request, _ *m
 
 	if err = httpx.NewJsonSender(p, http.StatusOK).Send(w); err != nil {
 		_ = logger.Error(r.Context(), err, "failed to send response")
-		httpx.SendError(w, nil)
+		httpx.SendError(w, httpx.ErrInternalServer)
 	}
 
 	return

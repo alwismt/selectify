@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { formatOrderDate, formatOrderMoney } from "@/lib/format";
 import { useSiteConfig } from "@/app/context/SiteConfigContext";
 import type { Order } from "@/types/api/order";
@@ -45,17 +45,18 @@ interface OrdersProps {
   initialOrders?: Order[];
 }
 
-const Orders = ({ initialOrders = [] }: OrdersProps) => {
+const Orders = ({ initialOrders }: OrdersProps) => {
   const { currency: siteCurrency } = useSiteConfig();
   const [orders, setOrders] = useState<DisplayOrder[]>(() =>
-    initialOrders.map((o) => orderToDisplay(o, siteCurrency))
+    (initialOrders ?? []).map((o) => orderToDisplay(o, siteCurrency))
   );
-  const [prevInitialOrders, setPrevInitialOrders] = useState(initialOrders);
 
-  if (initialOrders !== prevInitialOrders) {
-    setPrevInitialOrders(initialOrders);
-    setOrders(initialOrders.map((o) => orderToDisplay(o, siteCurrency)));
-  }
+  useEffect(() => {
+    setOrders(
+      (initialOrders ?? []).map((o) => orderToDisplay(o, siteCurrency))
+    );
+  }, [initialOrders, siteCurrency]);
+
   return (
     <>
       <div className="w-full overflow-x-auto">

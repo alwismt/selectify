@@ -5,6 +5,7 @@ import type {
   MerchantApiProductVariant,
   MerchantApiVariantFile,
 } from "@/types/merchantProduct";
+import { availableVariantQuantity } from "@/types/api/variant";
 import type { SiteCurrency } from "@/types/siteConfig";
 import AddVariantButton from "./AddVariantButton";
 import EditProductButton from "./EditProductButton";
@@ -160,8 +161,7 @@ export default function MerchantProductDetails({
               <tbody>
                 {variants.map((variant) => {
                   const file = pickVariantFile(variant.files ?? []);
-                  const available =
-                    variant.stock_quantity - variant.reserved_quantity;
+                  const available = availableVariantQuantity(variant);
                   const identity = variantIdentityLabel(variant);
 
                   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useUser } from "@/app/context/UserContext";
 import type { CartResponse } from "@/types/api/cart";
 
@@ -30,24 +30,14 @@ export function CartProvider({
   const [cart, setCart] = useState<CartResponse | null>(
     userId ? initialCart : null
   );
-  const [prevUserId, setPrevUserId] = useState(userId);
-  const [prevInitialCart, setPrevInitialCart] = useState(initialCart);
 
-  if (userId !== prevUserId) {
-    setPrevUserId(userId);
+  useEffect(() => {
     if (!userId) {
       setCart(null);
     } else {
-      setCart(initialCart);
+      setCart(initialCart ?? null);
     }
-  }
-
-  if (initialCart !== prevInitialCart) {
-    setPrevInitialCart(initialCart);
-    if (userId) {
-      setCart(initialCart);
-    }
-  }
+  }, [userId, initialCart]);
 
   const value: CartContextValue = {
     cart: userId ? cart : null,
